@@ -1,0 +1,14 @@
+# Klartext-Daten gehoeren NIE ins Repository.
+garmin/
+dashboard.html
+dashboard_artifact.html
+sync.log
+garmin-ci-token.txt
+
+# Nur die verschluesselte Fassung wird veroeffentlicht:
+!docs/
+!docs/index.html
+!docs/data.enc
+
+__pycache__/
+*.pyc

@@ -1,0 +1,2928 @@
+<title>Erholung &amp; Belastung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --page:      #f4f4f1;
+    --surface:   #fcfcfb;
+    --sunken:    #f0efec;
+    --ink:       #0b0b0b;
+    --ink2:      #52514e;
+    --muted:     #898781;
+    --grid:      #e1e0d9;
+    --axis:      #c3c2b7;
+    --border:    rgba(11, 11, 11, 0.10);
+    --recovery:  #2a78d6;
+    --load:      #eb6834;
+    --deep:      #184f95;
+    --lightsl:   #3987e5;
+    --rem:       #86b6ef;
+    --good:      #0ca30c;
+    --good-ink:  #006300;
+    --warn:      #fab219;
+    --warn-ink:  #8a5c00;
+    --crit:      #d03b3b;
+    --crit-ink:  #b02c2c;
+    --shadow:    0 1px 2px rgba(11, 11, 11, 0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page:     #0d0d0d;
+      --surface:  #1a1a19;
+      --sunken:   #232321;
+      --ink:      #ffffff;
+      --ink2:     #c3c2b7;
+      --muted:    #898781;
+      --grid:     #2c2c2a;
+      --axis:     #383835;
+      --border:   rgba(255, 255, 255, 0.10);
+      --recovery: #3987e5;
+      --load:     #d95926;
+      --deep:     #2a78d6;
+      --lightsl:  #5598e7;
+      --rem:      #9ec5f4;
+      --good:     #0ca30c;
+      --good-ink: #0ca30c;
+      --warn:     #fab219;
+      --warn-ink: #fab219;
+      --crit:     #e66767;
+      --crit-ink: #e66767;
+      --shadow:   none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page:     #0d0d0d;
+    --surface:  #1a1a19;
+    --sunken:   #232321;
+    --ink:      #ffffff;
+    --ink2:     #c3c2b7;
+    --muted:    #898781;
+    --grid:     #2c2c2a;
+    --axis:     #383835;
+    --border:   rgba(255, 255, 255, 0.10);
+    --recovery: #3987e5;
+    --load:     #d95926;
+    --deep:     #2a78d6;
+    --lightsl:  #5598e7;
+    --rem:      #9ec5f4;
+    --good:     #0ca30c;
+    --good-ink: #0ca30c;
+    --warn:     #fab219;
+    --warn-ink: #fab219;
+    --crit:     #e66767;
+    --crit-ink: #e66767;
+    --shadow:   none;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .wrap { max-width: 980px; margin: 0 auto; padding-inline: 16px; padding-block: 18px 44px; }
+
+  .label {
+    font-family: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  /* ---------- header + tabs ---------- */
+  .eyebrow { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  h1 { font-size: 23px; font-weight: 600; letter-spacing: -0.015em; margin: 4px 0 0; text-wrap: balance; }
+  .sub { color: var(--ink2); font-size: 13.5px; margin-top: 2px; }
+
+  .tabs {
+    display: flex; gap: 2px; margin: 16px 0 6px; padding: 3px;
+    background: var(--sunken); border-radius: 10px; border: 1px solid var(--border);
+  }
+  .tabs button {
+    flex: 1; font: inherit; font-size: 14px; font-weight: 500; color: var(--ink2);
+    background: none; border: 0; padding: 8px 6px; border-radius: 7px; cursor: pointer;
+  }
+  .tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+  .tabs button:focus-visible, .segmented button:focus-visible, .ghost:focus-visible {
+    outline: 2px solid var(--recovery); outline-offset: 2px;
+  }
+
+  .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 10px 0 18px; }
+  .segmented { display: inline-flex; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 2px; }
+  .segmented button {
+    font: inherit; font-size: 13px; color: var(--ink2); background: none; border: 0;
+    padding: 5px 11px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+  }
+  .segmented button[aria-pressed="true"] { background: var(--ink); color: var(--page); font-weight: 500; }
+  .ghost {
+    font: inherit; font-size: 13px; color: var(--ink2); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer;
+  }
+
+  /* ---------- coach cards ---------- */
+  .coach {
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--state, var(--recovery));
+    border-radius: 10px; padding: 13px 15px; box-shadow: var(--shadow);
+  }
+  .coach + .coach { margin-top: 9px; }
+  .chead { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+  .chead b { font-weight: 600; font-size: 15px; }
+  .coach p { margin: 5px 0 0; color: var(--ink2); font-size: 14px; }
+  .coach p.act { color: var(--ink); margin-top: 7px; }
+  .coach p.act::before {
+    content: "Mach das"; display: block; font-family: "IBM Plex Mono", monospace;
+    font-size: 10px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted);
+    margin-bottom: 1px;
+  }
+  .pill {
+    font-family: "IBM Plex Mono", monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+    border: 1px solid var(--state, var(--recovery)); color: var(--state-ink, var(--recovery));
+  }
+
+  /* ---------- tiles ---------- */
+  .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  @media (min-width: 560px) { .tiles { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 900px) { .tiles { grid-template-columns: repeat(6, 1fr); } }
+  .tiles.four { grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 700px) { .tiles.four { grid-template-columns: repeat(4, 1fr); } }
+  .tile {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 11px 12px 8px; box-shadow: var(--shadow); min-width: 0;
+  }
+  .tile .value { font-size: 25px; font-weight: 600; letter-spacing: -0.02em; margin-top: 5px; line-height: 1.1; }
+  .tile .value .unit { font-size: 12.5px; font-weight: 500; color: var(--muted); margin-left: 3px; letter-spacing: 0; }
+  .tile .delta { font-size: 12px; color: var(--ink2); margin-top: 1px; font-variant-numeric: tabular-nums; }
+  .tile .delta.up { color: var(--good-ink); }
+  .tile .delta.down { color: var(--warn-ink); }
+  .tile .spark { margin-top: 5px; height: 30px; }
+  .tile .spark svg { display: block; width: 100%; height: 30px; }
+
+  /* ---------- sections + charts ---------- */
+  section { margin-bottom: 24px; }
+  .sechead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+  h2 { font-size: 13px; font-weight: 600; margin: 0; letter-spacing: 0.01em; }
+  .hint { font-size: 12px; color: var(--muted); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 13px 14px 10px; box-shadow: var(--shadow); }
+  .card + .card { margin-top: 10px; }
+  .chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+  .now { font-size: 13px; color: var(--ink2); font-variant-numeric: tabular-nums; }
+  .now b { color: var(--ink); font-weight: 600; }
+
+  .chart { position: relative; touch-action: pan-y; }
+  .chart svg { display: block; width: 100%; }
+  .tip {
+    position: absolute; pointer-events: none; opacity: 0; transition: opacity .12s;
+    background: var(--ink); color: var(--page); border-radius: 7px; padding: 6px 9px;
+    font-size: 12px; line-height: 1.35; white-space: nowrap; z-index: 3;
+    font-variant-numeric: tabular-nums; box-shadow: 0 2px 8px rgba(0,0,0,.18);
+  }
+  .tip.on { opacity: 1; }
+  .tip .tdate { color: var(--axis); font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .05em; display: block; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 14px; margin-top: 9px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink2); }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+
+  /* ---------- zone / distribution bar ---------- */
+  .stackbar { display: flex; height: 26px; border-radius: 6px; overflow: hidden; background: var(--sunken); }
+  .stackbar div { height: 100%; }
+  .zonerows { margin-top: 10px; }
+  .zrow { display: flex; align-items: center; gap: 9px; padding: 5px 0; font-size: 13px; border-top: 1px solid var(--border); }
+  .zrow:first-child { border-top: 0; }
+  .zrow i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .zrow .zname { flex: 1; min-width: 0; }
+  .zrow .zval { font-variant-numeric: tabular-nums; color: var(--ink2); }
+  .zrow .zpct { font-variant-numeric: tabular-nums; font-weight: 600; width: 46px; text-align: right; }
+
+  /* ---------- comparison bars ---------- */
+  .cmp { margin-top: 4px; }
+  .cmprow { margin-top: 10px; }
+  .cmprow .cl { display: flex; justify-content: space-between; font-size: 13px; gap: 10px; }
+  .cmprow .cl b { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .cmprow .track { height: 8px; background: var(--sunken); border-radius: 4px; margin-top: 4px; overflow: hidden; }
+  .cmprow .fill { height: 100%; border-radius: 4px; }
+
+  /* ---------- metric rows ---------- */
+  .rows { display: flex; flex-direction: column; }
+  .mrow { display: flex; align-items: baseline; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 14px; }
+  .mrow:first-child { border-top: 0; }
+  .mrow .mname { flex: 1; min-width: 0; color: var(--ink2); }
+  .mrow .mval { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .mrow .msub { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+  /* ---------- workouts ---------- */
+  .w { display: flex; gap: 11px; align-items: baseline; padding: 11px 2px; border-top: 1px solid var(--border); }
+  .w:first-child { border-top: 0; }
+  .w .wdate { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--muted); width: 44px; flex: none; }
+  .w .wdot { width: 7px; height: 7px; border-radius: 50%; flex: none; align-self: center; }
+  .w .wmain { flex: 1; min-width: 0; }
+  .w .wname { font-weight: 500; font-size: 14px; overflow-wrap: anywhere; }
+  .w .wmeta { font-size: 12.5px; color: var(--ink2); font-variant-numeric: tabular-nums; margin-top: 1px; }
+  .w .wmeta span::after { content: "·"; margin: 0 6px; color: var(--axis); }
+  .w .wmeta span:last-child::after { content: ""; margin: 0; }
+
+  /* ---------- table ---------- */
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: right; padding: 7px 9px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--surface); }
+  td.none { color: var(--axis); }
+
+  footer { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12.5px; }
+  footer p { margin: 0 0 4px; }
+
+
+  /* ---------- sport chips ---------- */
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; }
+  .chip {
+    font: inherit; font-size: 13px; color: var(--ink2); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 999px; padding: 5px 13px; cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--page); border-color: var(--ink); font-weight: 500; }
+  .chip:focus-visible { outline: 2px solid var(--recovery); outline-offset: 2px; }
+
+  /* ---------- activity detail ---------- */
+  .actrow { cursor: pointer; }
+  .actrow:hover { background: var(--sunken); }
+  .actrow .chev { color: var(--muted); font-size: 18px; width: 16px; text-align: center; flex: none; }
+  .actdetail {
+    background: var(--sunken); border-radius: 9px; padding: 13px 14px; margin: 2px 0 10px;
+  }
+  .dhead { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; margin-bottom: 10px; }
+  .dgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 11px 14px; }
+  @media (min-width: 620px) { .dgrid { grid-template-columns: repeat(4, 1fr); } }
+  .dmetric { min-width: 0; }
+  .dm { margin-top: 2px; }
+  .dmv { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .dmd { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .dmd.up { color: var(--good-ink); }
+  .dmd.down { color: var(--warn-ink); }
+  .dverdict { margin: 12px 0 0; font-size: 13.5px; color: var(--ink2); }
+
+  /* ---------- goal form ---------- */
+  .form { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 560px) { .form { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 860px) { .form { grid-template-columns: repeat(4, 1fr); } }
+  .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .field select, .field input {
+    font: inherit; font-size: 15px; color: var(--ink); background: var(--page);
+    border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; width: 100%;
+    appearance: none; -webkit-appearance: none;
+  }
+  .field select:focus-visible, .field input:focus-visible {
+    outline: 2px solid var(--recovery); outline-offset: 1px;
+  }
+  .formactions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .primary {
+    font: inherit; font-size: 14px; font-weight: 500; color: var(--page); background: var(--ink);
+    border: 1px solid var(--ink); border-radius: 8px; padding: 8px 16px; cursor: pointer;
+  }
+  .primary:focus-visible { outline: 2px solid var(--recovery); outline-offset: 2px; }
+  .bignum { font-size: 34px; font-weight: 600; letter-spacing: -0.02em; margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+  /* ---------- plan sessions ---------- */
+  .session { display: flex; gap: 12px; padding: 11px 0; border-top: 1px solid var(--border); }
+  .session:first-child { border-top: 0; }
+  .sday {
+    width: 42px; flex: none; text-align: center; background: var(--sunken);
+    border-radius: 8px; padding: 5px 0; align-self: flex-start;
+  }
+  .sdayname { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+  .sdaynum { font-size: 17px; font-weight: 600; line-height: 1.1; }
+  .smain { flex: 1; min-width: 0; }
+  .stitle { font-weight: 600; font-size: 14.5px; }
+  .sdetail { font-size: 13.5px; color: var(--ink2); margin-top: 1px; }
+
+
+  /* ---------- Passwort-Tor ---------- */
+  #gate { display: flex; align-items: center; justify-content: center; min-height: 80vh; padding: 20px 16px; }
+  .gatecard {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 22px 20px; box-shadow: var(--shadow); width: 100%; max-width: 340px;
+  }
+  .gatecard h1 { font-size: 21px; margin: 6px 0 0; }
+  .gatecard p { color: var(--ink2); font-size: 13.5px; margin: 8px 0 0; }
+  .gatecard input {
+    font: inherit; font-size: 16px; color: var(--ink); background: var(--page);
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+    width: 100%; margin-top: 14px;
+  }
+  .gatecard input:focus-visible { outline: 2px solid var(--recovery); outline-offset: 1px; }
+  .gatecard .primary { width: 100%; margin-top: 10px; padding: 10px; font-size: 15px; }
+  .gatecard .hint { margin-top: 10px; min-height: 18px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div id="gate" hidden>
+  <form class="gatecard" id="gateform">
+    <div class="label">Garmin &middot; Tagesform</div>
+    <h1>Passwort</h1>
+    <p>Deine Werte liegen auf dem Server nur verschl&uuml;sselt. Entschl&uuml;sselt werden sie
+       erst hier, in diesem Browser.</p>
+    <input type="password" id="gatepw" autocomplete="current-password" placeholder="Passwort" enterkeyhint="go">
+    <button type="submit" class="primary">&Ouml;ffnen</button>
+    <p class="hint" id="gatemsg">&nbsp;</p>
+  </form>
+</div>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">
+      <span class="label">Garmin &middot; Tagesform</span>
+      <span class="label" id="stand"></span>
+    </div>
+    <h1 id="headline">Erholung &amp; Belastung</h1>
+    <div class="sub" id="subline"></div>
+
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="heute" aria-selected="true">Heute</button>
+      <button type="button" role="tab" data-tab="koerper" aria-selected="false">K&ouml;rper</button>
+      <button type="button" role="tab" data-tab="sport" aria-selected="false">Sport</button>
+      <button type="button" role="tab" data-tab="ziel" aria-selected="false">Ziel</button>
+    </div>
+
+    <div class="controls" id="rangectl">
+      <div class="segmented" role="group" aria-label="Zeitraum">
+        <button type="button" data-range="7">7 Tage</button>
+        <button type="button" data-range="30" aria-pressed="true">30 Tage</button>
+        <button type="button" data-range="45">Alles</button>
+      </div>
+      <button type="button" class="ghost" id="tabletoggle" aria-expanded="false">Tabelle</button>
+    </div>
+  </header>
+
+  <!-- ============================== HEUTE ============================== -->
+  <div id="panel-heute" role="tabpanel">
+    <section>
+      <div id="today-coach"></div>
+    </section>
+
+    <section>
+      <div class="sechead"><h2>Heute in Zahlen</h2><span class="hint">Abweichung zum Wochenschnitt</span></div>
+      <div class="tiles" id="tiles"></div>
+    </section>
+
+    <section>
+      <div class="sechead"><h2>Worauf es diese Woche ankommt</h2><span class="hint">aus deinen Daten abgeleitet</span></div>
+      <div id="week-coach"></div>
+    </section>
+
+    <section>
+      <div class="sechead"><h2>Letzte Trainings</h2><span class="hint" id="acthint"></span></div>
+      <div class="card"><div class="rows" id="workouts"></div></div>
+    </section>
+
+    <section id="tablesec" hidden>
+      <div class="sechead"><h2>Alle Tageswerte</h2><span class="hint">leer = Uhr nicht getragen</span></div>
+      <div class="card"><div class="tablewrap" id="tablewrap"></div></div>
+    </section>
+  </div>
+
+  <!-- ============================== KÖRPER ============================== -->
+  <div id="panel-koerper" role="tabpanel" hidden>
+    <section>
+      <div class="sechead"><h2>Was dein K&ouml;rper gerade sagt</h2><span class="hint">7 Tage gegen 4 Wochen</span></div>
+      <div id="body-coach"></div>
+    </section>
+
+    <section>
+      <div class="sechead"><h2>Erholung</h2><span class="hint">HRV und Ruhepuls sind deine zwei Frühwarnsysteme</span></div>
+      <div class="card">
+        <div class="chart-head"><span class="label">HRV &uuml;ber Nacht &middot; ms</span><span class="now" id="now-hrv"></span></div>
+        <div class="chart" id="c-hrv"></div>
+      </div>
+      <div class="card">
+        <div class="chart-head"><span class="label">Ruhepuls &middot; bpm</span><span class="now" id="now-rhr"></span></div>
+        <div class="chart" id="c-rhr"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sechead"><h2>Schlaf</h2><span class="hint">Menge, Struktur, Rhythmus</span></div>
+      <div class="card">
+        <div class="chart-head"><span class="label">Schlafphasen &middot; Stunden</span><span class="now" id="now-sleep"></span></div>
+        <div class="chart" id="c-sleepstack"></div>
+        <div class="legend" id="leg-sleep"></div>
+      </div>
+      <div class="card">
+        <div class="chart-head"><span class="label">Zubettgehzeit</span><span class="now" id="now-bed"></span></div>
+        <div class="chart" id="c-bed"></div>
+      </div>
+      <div class="card">
+        <div class="chart-head"><span class="label">Schlafstruktur im Schnitt</span><span class="now" id="now-arch"></span></div>
+        <div class="rows" id="arch-rows"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sechead"><h2>Schlaf und HRV h&auml;ngen zusammen</h2><span class="hint">deine eigenen N&auml;chte, zwei Gruppen</span></div>
+      <div class="card"><div class="cmp" id="cmp-sleep"></div></div>
+    </section>
+
+    <section>
+      <div class="sechead"><h2>Stress und Energie</h2><span class="hint">Body Battery und Stresslevel</span></div>
+      <div class="card">
+        <div class="chart-head"><span class="label">Body Battery &middot; Ladung &uuml;ber Nacht</span><span class="now" id="now-bb"></span></div>
+        <div class="chart" id="c-bb"></div>
+      </div>
+      <div class="card">
+        <div class="chart-head"><span class="label">Stresslevel &middot; Tagesschnitt</span><span class="now" id="now-stress"></span></div>
+        <div class="chart" id="c-stress"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sechead"><h2>Alltagsbewegung</h2><span class="hint">au&szlig;erhalb des Trainings</span></div>
+      <div class="card">
+        <div class="chart-head"><span class="label">Schritte</span><span class="now" id="now-steps"></span></div>
+        <div class="chart" id="c-steps"></div>
+      </div>
+      <div class="card"><div class="rows" id="body-rows"></div></div>
+    </section>
+  </div>
+
+  <!-- ============================== SPORT ============================== -->
+  <div id="panel-sport" role="tabpanel" hidden>
+    <div class="chips" id="sportchips" role="group" aria-label="Sportart"></div>
+    <div id="sport-content"></div>
+  </div>
+
+  <!-- ============================== ZIEL ============================== -->
+  <div id="panel-ziel" role="tabpanel" hidden>
+    <section>
+      <div class="sechead">
+        <h2>Dein Wettkampfziel</h2>
+        <span class="hint" id="goal-state"></span>
+      </div>
+      <div class="card">
+        <div class="form">
+          <div class="field">
+            <label class="label" for="g-sport">Sportart</label>
+            <select id="g-sport">
+              <option value="running">Laufen</option>
+              <option value="cycling">Radfahren</option>
+              <option value="swimming">Schwimmen</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="label" for="g-dist">Distanz</label>
+            <select id="g-dist"></select>
+          </div>
+          <div class="field" id="f-custom" hidden>
+            <label class="label" for="g-distkm">Eigene Distanz &middot; km</label>
+            <input id="g-distkm" type="number" min="0.2" step="0.1" placeholder="12,5">
+          </div>
+          <div class="field">
+            <label class="label" for="g-time">Zielzeit</label>
+            <input id="g-time" type="text" inputmode="numeric" placeholder="1:45:00">
+          </div>
+          <div class="field">
+            <label class="label" for="g-date">Wettkampftag</label>
+            <input id="g-date" type="date">
+          </div>
+        </div>
+        <div class="formactions">
+          <button type="button" class="primary" id="g-save">Ziel speichern</button>
+          <button type="button" class="ghost" id="g-clear">Ziel l&ouml;schen</button>
+          <span class="hint" id="g-msg"></span>
+        </div>
+      </div>
+    </section>
+
+    <div id="goal-content"></div>
+  </div>
+
+  <footer>
+    <p id="foot-sync"></p>
+    <p>Quelle: dein Garmin-Konto, lokal synchronisiert. Schlaf, HRV und Atmung erscheinen nur f&uuml;r N&auml;chte
+       mit getragener Uhr. Die Bewertungen hier sind Faustregeln aus der Trainingslehre, kein medizinischer Rat.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var DATA = /*__GARMIN_DATA__*/null;
+  var days = (DATA && DATA.days) || [];
+  var acts = (DATA && DATA.activities) || [];
+  var range = 30;
+  var tab = "heute";
+
+  // ------------------------------------------------------------- utilities
+  function tok(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function num(v) { return typeof v === "number" && isFinite(v); }
+  function fmt(v, dec) {
+    if (!num(v)) return "–";
+    return v.toLocaleString("de-DE", { minimumFractionDigits: dec || 0, maximumFractionDigits: dec || 0 });
+  }
+  function dmy(iso) { var p = iso.split("-"); return p[2] + "." + p[1] + "."; }
+  function hm(sec) {
+    if (!num(sec)) return "–";
+    var h = Math.floor(sec / 3600), m = Math.round((sec % 3600) / 60);
+    return h ? h + ":" + String(m).padStart(2, "0") + " h" : m + " min";
+  }
+  function hoursMin(h) {
+    if (!num(h)) return "–";
+    var t = Math.round(h * 60);
+    return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0") + " h";
+  }
+  function paceStr(km, sec) {
+    if (!num(km) || !num(sec) || km < 0.3) return null;
+    var s = sec / km;
+    return Math.floor(s / 60) + ":" + String(Math.round(s % 60)).padStart(2, "0");
+  }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function clearNode(n) { while (n.firstChild) n.removeChild(n.firstChild); return n; }
+
+  function mean(a) { return a.length ? a.reduce(function (x, y) { return x + y; }, 0) / a.length : null; }
+  function median(a) {
+    if (!a.length) return null;
+    var s = a.slice().sort(function (x, y) { return x - y; }), m = Math.floor(s.length / 2);
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  }
+  function stdev(a) {
+    if (a.length < 2) return null;
+    var m = mean(a);
+    return Math.sqrt(mean(a.map(function (v) { return (v - m) * (v - m); })));
+  }
+  function slopePerWeek(ys) {
+    var pts = ys.map(function (v, i) { return { x: i, y: v }; }).filter(function (p) { return num(p.y); });
+    if (pts.length < 4) return null;
+    var mx = mean(pts.map(function (p) { return p.x; })), my = mean(pts.map(function (p) { return p.y; }));
+    var nu = 0, de = 0;
+    pts.forEach(function (p) { nu += (p.x - mx) * (p.y - my); de += (p.x - mx) * (p.x - mx); });
+    return de ? (nu / de) * 7 : null;
+  }
+
+  function series(rows, key) {
+    return rows.map(function (r) { return { d: r.d, v: num(r[key]) ? r[key] : null }; });
+  }
+  function vals(s) { return s.filter(function (p) { return p.v !== null; }).map(function (p) { return p.v; }); }
+  function last(s) { for (var i = s.length - 1; i >= 0; i--) if (s[i].v !== null) return s[i]; return null; }
+  function lastN(s, n) { return vals(s).slice(-n); }
+  function priorN(s, skip, n) {
+    var v = vals(s);
+    return v.slice(Math.max(0, v.length - skip - n), v.length - skip);
+  }
+  function slice() { return days.slice(Math.max(0, days.length - range)); }
+  function allDays() { return days; }
+
+  function minutesToClock(min) {
+    var m = ((Math.round(min) % 1440) + 1440) % 1440;
+    return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+  }
+  /* bedtimes cross midnight: 23:10 -> 1390, 00:20 -> 1460, so the numbers stay comparable */
+  function bedMinutes(hhmm) {
+    if (!hhmm) return null;
+    var p = hhmm.split(":"), m = parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
+    return m < 720 ? m + 1440 : m;
+  }
+
+  // ------------------------------------------------------------- run helpers
+  function isRun(a) { return a.type && a.type.indexOf("running") >= 0; }
+  function runs(list) { return (list || acts).filter(isRun); }
+  function actsIn(from, to) {
+    return acts.filter(function (a) { return a.date && a.date >= from && (!to || a.date <= to); });
+  }
+  /* metres covered per heartbeat: (m/s x 60) / (beats/min) = m per beat */
+  function efficiency(a) {
+    if (!num(a.speed) || !num(a.hr) || a.hr < 60) return null;
+    return (a.speed * 60) / a.hr;
+  }
+  function sportName(type) {
+    var map = { running: "Laufen", trail_running: "Trailrunning", treadmill_running: "Laufband",
+      cycling: "Radfahren", road_biking: "Rennrad", mountain_biking: "Mountainbike",
+      strength_training: "Krafttraining", indoor_cycling: "Indoor-Rad", hiking: "Wandern",
+      walking: "Gehen", swimming: "Schwimmen", lap_swimming: "Bahnenschwimmen",
+      yoga: "Yoga", cardio: "Cardio", elliptical: "Crosstrainer", other: "Sonstiges" };
+    return map[type] || (type ? type.replace(/_/g, " ") : "Training");
+  }
+
+  function weekKey(iso) {
+    var d = new Date(iso + "T00:00:00");
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" +
+           String(d.getDate()).padStart(2, "0");
+  }
+  function weekBuckets(from, to, valueFn) {
+    var buckets = {}, cursor = new Date(weekKey(from) + "T00:00:00"), endKey = weekKey(to);
+    while (true) {
+      var key = cursor.getFullYear() + "-" + String(cursor.getMonth() + 1).padStart(2, "0") + "-" +
+                String(cursor.getDate()).padStart(2, "0");
+      buckets[key] = 0;
+      if (key === endKey) break;
+      cursor.setDate(cursor.getDate() + 7);
+      if (cursor.getFullYear() > 2100) break;
+    }
+    acts.forEach(function (a) {
+      if (!a.date || a.date < from || a.date > to) return;
+      var k = weekKey(a.date);
+      if (k in buckets) buckets[k] += valueFn(a) || 0;
+    });
+    return Object.keys(buckets).sort().map(function (k) {
+      return { d: k, v: Math.round(buckets[k] * 10) / 10 };
+    });
+  }
+
+  // ------------------------------------------------------------- svg basics
+  function svgEl(name, attrs) {
+    var n = document.createElementNS("http://www.w3.org/2000/svg", name);
+    for (var k in attrs) if (attrs[k] != null) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+  function roundedTop(x, y, w, h, r) {
+    r = Math.min(r, w / 2, Math.max(h, 0));
+    if (h <= 0.5) return "M" + x + " " + (y + h) + "h" + w;
+    return "M" + x + " " + (y + h) + "V" + (y + r) +
+           "a" + r + " " + r + " 0 0 1 " + r + " " + (-r) +
+           "h" + (w - 2 * r) + "a" + r + " " + r + " 0 0 1 " + r + " " + r +
+           "V" + (y + h) + "Z";
+  }
+  function niceBounds(values, opts) {
+    var lo = Math.min.apply(null, values), hi = Math.max.apply(null, values);
+    if (opts && opts.zero) lo = 0;
+    if (lo === hi) { lo -= 1; hi += 1; }
+    var pad = (hi - lo) * 0.12;
+    lo = (opts && opts.zero) ? 0 : lo - pad;
+    hi += pad;
+    var span = hi - lo;
+    var step = Math.pow(10, Math.floor(Math.log(span / 3) / Math.LN10));
+    var err = span / 3 / step;
+    if (err >= 5) step *= 10; else if (err >= 2.5) step *= 5; else if (err >= 1.2) step *= 2;
+    lo = (opts && opts.zero) ? 0 : Math.floor(lo / step) * step;
+    hi = Math.ceil(hi / step) * step;
+    var ticks = [];
+    for (var t = lo; t <= hi + step / 2; t += step) ticks.push(Math.round(t * 1000) / 1000);
+    return { lo: lo, hi: hi, ticks: ticks };
+  }
+
+  function emptyChart(host, msg) {
+    clearNode(host);
+    var p = el("p", "hint", msg || "Für diesen Zeitraum liegen keine Werte vor.");
+    p.style.margin = "18px 2px";
+    host.appendChild(p);
+  }
+
+  // ------------------------------------------------------------- chart core
+  function drawChart(host, s, opts) {
+    clearNode(host);
+    opts = opts || {};
+    var present = vals(s);
+    if (!present.length) { emptyChart(host, opts.empty); return; }
+
+    var W = Math.max(host.clientWidth || 320, 260);
+    var H = opts.height || 146;
+    var padL = opts.padL || 38, padR = 12, padT = 12, padB = 22;
+    var iw = W - padL - padR, ih = H - padT - padB;
+    var stacked = opts.kind === "stack";
+    var scaleVals = stacked ? s.map(function (p) { return p.total; }).filter(num) : present;
+    var b = niceBounds(scaleVals.length ? scaleVals : present, { zero: !!opts.zero });
+    var color = opts.color;
+
+    var svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, height: H, role: "img",
+                             "aria-label": opts.aria || "" });
+    function X(i) { return padL + (s.length === 1 ? iw / 2 : (i / (s.length - 1)) * iw); }
+    function Y(v) { return padT + ih - ((v - b.lo) / (b.hi - b.lo)) * ih; }
+
+    b.ticks.forEach(function (t) {
+      var y = Y(t);
+      if (y < padT - 1 || y > padT + ih + 1) return;
+      svg.appendChild(svgEl("line", { x1: padL, x2: W - padR, y1: y, y2: y,
+        stroke: tok("--grid"), "stroke-width": 1 }));
+      var lab = svgEl("text", { x: padL - 7, y: y + 3.5, "text-anchor": "end", fill: tok("--muted"),
+        "font-size": 10, "font-family": '"IBM Plex Mono", monospace' });
+      lab.textContent = opts.tick ? opts.tick(t) : fmt(t, opts.dec);
+      svg.appendChild(lab);
+    });
+
+    [0, Math.floor((s.length - 1) / 2), s.length - 1].filter(function (v, i, a) {
+      return a.indexOf(v) === i && s.length > 1;
+    }).forEach(function (i) {
+      var t = svgEl("text", { x: X(i), y: H - 6,
+        "text-anchor": i === 0 ? "start" : (i === s.length - 1 ? "end" : "middle"),
+        fill: tok("--muted"), "font-size": 10, "font-family": '"IBM Plex Mono", monospace' });
+      t.textContent = dmy(s[i].d);
+      svg.appendChild(t);
+    });
+
+    if (stacked) {
+      var slot = iw / s.length, bw = Math.max(2, Math.min(slot - 2, 26));
+      s.forEach(function (p, i) {
+        if (!num(p.total)) return;
+        var x = padL + slot * i + (slot - bw) / 2, acc = 0;
+        p.parts.forEach(function (part) {
+          if (!num(part.v) || part.v <= 0) return;
+          var y0 = Y(acc), y1 = Y(acc + part.v);
+          svg.appendChild(svgEl("rect", { x: x, y: y1, width: bw, height: Math.max(0.5, y0 - y1 - 1),
+            fill: part.color, rx: 1 }));
+          acc += part.v;
+        });
+      });
+    } else if (opts.kind === "bar") {
+      var slotB = iw / s.length, bwB = Math.max(2, Math.min(slotB - 2, 26));
+      s.forEach(function (p, i) {
+        if (p.v === null) return;
+        var x = padL + slotB * i + (slotB - bwB) / 2, y = Y(p.v), h = Y(b.lo) - y;
+        svg.appendChild(svgEl("path", { d: roundedTop(x, y, bwB, h, Math.min(4, bwB / 2)),
+          fill: color, opacity: i === s.length - 1 ? 1 : 0.82 }));
+      });
+    } else {
+      var runsArr = [], cur = [];
+      s.forEach(function (p, i) {
+        if (p.v === null) { if (cur.length) runsArr.push(cur); cur = []; } else cur.push({ i: i, v: p.v });
+      });
+      if (cur.length) runsArr.push(cur);
+
+      var gid = "g" + Math.random().toString(36).slice(2, 8);
+      var defs = svgEl("defs", {});
+      var grad = svgEl("linearGradient", { id: gid, x1: 0, y1: 0, x2: 0, y2: 1 });
+      grad.appendChild(svgEl("stop", { offset: "0%", "stop-color": color, "stop-opacity": 0.20 }));
+      grad.appendChild(svgEl("stop", { offset: "100%", "stop-color": color, "stop-opacity": 0 }));
+      defs.appendChild(grad); svg.appendChild(defs);
+
+      var avg = mean(present), avgLabel = null;
+      if (opts.avgLine !== false) {
+        svg.appendChild(svgEl("line", { x1: padL, x2: W - padR, y1: Y(avg), y2: Y(avg),
+          stroke: tok("--axis"), "stroke-width": 1, "stroke-dasharray": "3 4" }));
+        avgLabel = svgEl("text", { x: W - padR, y: Y(avg) - 5, "text-anchor": "end", fill: tok("--muted"),
+          "font-size": 9.5, "font-family": '"IBM Plex Mono", monospace',
+          stroke: tok("--surface"), "stroke-width": 3, "paint-order": "stroke fill" });
+        avgLabel.textContent = "Ø " + (opts.tick ? opts.tick(avg) : fmt(avg, opts.dec));
+      }
+
+      runsArr.forEach(function (run) {
+        if (run.length > 1) {
+          var d = run.map(function (p, k) { return (k ? "L" : "M") + X(p.i) + " " + Y(p.v); }).join(" ");
+          svg.appendChild(svgEl("path", { d: d + " L" + X(run[run.length - 1].i) + " " + (padT + ih) +
+            " L" + X(run[0].i) + " " + (padT + ih) + " Z", fill: "url(#" + gid + ")" }));
+          svg.appendChild(svgEl("path", { d: d, fill: "none", stroke: color, "stroke-width": 2,
+            "stroke-linecap": "round", "stroke-linejoin": "round" }));
+        } else {
+          svg.appendChild(svgEl("circle", { cx: X(run[0].i), cy: Y(run[0].v), r: 3, fill: color }));
+        }
+      });
+
+      var lp = last(s);
+      if (lp) {
+        var li = s.indexOf(lp);
+        svg.appendChild(svgEl("circle", { cx: X(li), cy: Y(lp.v), r: 5.5, fill: tok("--surface") }));
+        svg.appendChild(svgEl("circle", { cx: X(li), cy: Y(lp.v), r: 3.5, fill: color }));
+      }
+      if (avgLabel) svg.appendChild(avgLabel);
+    }
+
+    var hover = svgEl("g", { opacity: 0 });
+    var vline = svgEl("line", { y1: padT, y2: padT + ih, stroke: tok("--axis"), "stroke-width": 1 });
+    var hdot = svgEl("circle", { r: 4.5, fill: color || tok("--recovery"), stroke: tok("--surface"), "stroke-width": 2 });
+    hover.appendChild(vline); hover.appendChild(hdot); svg.appendChild(hover);
+
+    host.appendChild(svg);
+    var tip = el("div", "tip"); host.appendChild(tip);
+
+    function locate(clientX) {
+      var r = svg.getBoundingClientRect(), rel = (clientX - r.left) * (W / r.width);
+      var best = -1, bd = 1e9;
+      s.forEach(function (p, i) {
+        var has = stacked ? num(p.total) : p.v !== null;
+        if (!has) return;
+        var d = Math.abs(X(i) - rel);
+        if (d < bd) { bd = d; best = i; }
+      });
+      return best;
+    }
+    function show(e) {
+      var i = locate(e.clientX);
+      if (i < 0) return;
+      var p = s[i], x = X(i), y = Y(stacked ? p.total : p.v);
+      vline.setAttribute("x1", x); vline.setAttribute("x2", x);
+      hdot.setAttribute("cx", x); hdot.setAttribute("cy", y);
+      hover.setAttribute("opacity", 1);
+      clearNode(tip);
+      tip.appendChild(el("span", "tdate", dmy(p.d) + p.d.slice(0, 4)));
+      var text = opts.tipText ? opts.tipText(p) :
+        ((opts.tipLabel ? opts.tipLabel + " " : "") +
+         (opts.tick ? opts.tick(p.v) : fmt(p.v, opts.dec)) + (opts.unit ? " " + opts.unit : ""));
+      String(text).split("\n").forEach(function (lineText, k) {
+        if (k) tip.appendChild(document.createElement("br"));
+        tip.appendChild(document.createTextNode(lineText));
+      });
+      tip.classList.add("on");
+      var rect = svg.getBoundingClientRect(), scale = rect.width / W, tw = tip.offsetWidth;
+      tip.style.left = Math.max(0, Math.min(x * scale - tw / 2, rect.width - tw)) + "px";
+      tip.style.top = Math.max(0, y * scale - tip.offsetHeight - 10) + "px";
+    }
+    function hide() { hover.setAttribute("opacity", 0); tip.classList.remove("on"); }
+    host.addEventListener("pointermove", show);
+    host.addEventListener("pointerdown", show);
+    host.addEventListener("pointerleave", hide);
+    host.addEventListener("pointercancel", hide);
+  }
+
+  function sparkline(host, s, color) {
+    clearNode(host);
+    var present = vals(s);
+    if (present.length < 2) return;
+    var W = 160, H = 30, pad = 3;
+    var lo = Math.min.apply(null, present), hi = Math.max.apply(null, present);
+    if (lo === hi) { lo -= 1; hi += 1; }
+    var svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, preserveAspectRatio: "none", "aria-hidden": "true" });
+    function X(i) { return (i / (s.length - 1)) * W; }
+    function Y(v) { return pad + (H - 2 * pad) - ((v - lo) / (hi - lo)) * (H - 2 * pad); }
+    var rr = [], cur = [];
+    s.forEach(function (p, i) {
+      if (p.v === null) { if (cur.length) rr.push(cur); cur = []; } else cur.push({ i: i, v: p.v });
+    });
+    if (cur.length) rr.push(cur);
+    rr.forEach(function (run) {
+      if (run.length < 2) return;
+      svg.appendChild(svgEl("path", {
+        d: run.map(function (p, k) { return (k ? "L" : "M") + X(p.i) + " " + Y(p.v); }).join(" "),
+        fill: "none", stroke: color, "stroke-width": 1.75, "stroke-linecap": "round",
+        "stroke-linejoin": "round", "vector-effect": "non-scaling-stroke" }));
+    });
+    var lp = last(s);
+    if (lp) svg.appendChild(svgEl("circle", { cx: X(s.indexOf(lp)), cy: Y(lp.v), r: 2.6, fill: color }));
+    host.appendChild(svg);
+  }
+
+  // ------------------------------------------------------------- components
+  function coachCard(state, title, text, action) {
+    var map = { good: ["--good", "--good-ink", "Gut"], warn: ["--warn", "--warn-ink", "Beobachten"],
+                crit: ["--crit", "--crit-ink", "Handeln"], info: ["--recovery", "--recovery", "Info"],
+                none: ["--axis", "--muted", "Keine Daten"] };
+    var m = map[state] || map.info;
+    var c = el("div", "coach");
+    c.style.setProperty("--state", "var(" + m[0] + ")");
+    c.style.setProperty("--state-ink", "var(" + m[1] + ")");
+    var head = el("div", "chead");
+    head.appendChild(el("span", "pill", m[2]));
+    head.appendChild(el("b", null, title));
+    c.appendChild(head);
+    if (text) c.appendChild(el("p", null, text));
+    if (action) c.appendChild(el("p", "act", action));
+    return c;
+  }
+
+  function mrow(name, value, sub) {
+    var r = el("div", "mrow");
+    r.appendChild(el("div", "mname", name));
+    r.appendChild(el("div", "mval", value));
+    if (sub) r.appendChild(el("div", "msub", sub));
+    return r;
+  }
+
+  function compareBars(host, items, unit, dec) {
+    clearNode(host);
+    var max = Math.max.apply(null, items.map(function (i) { return i.value || 0; })) || 1;
+    items.forEach(function (it) {
+      var row = el("div", "cmprow");
+      var cl = el("div", "cl");
+      cl.appendChild(el("span", null, it.label));
+      cl.appendChild(el("b", null, fmt(it.value, dec) + (unit ? " " + unit : "")));
+      row.appendChild(cl);
+      var track = el("div", "track"), fill = el("div", "fill");
+      fill.style.width = Math.max(2, (it.value / max) * 100) + "%";
+      fill.style.background = it.color || tok("--recovery");
+      track.appendChild(fill); row.appendChild(track);
+      if (it.note) {
+        var n = el("div", "hint", it.note); n.style.marginTop = "3px"; row.appendChild(n);
+      }
+      host.appendChild(row);
+    });
+  }
+
+  // ------------------------------------------------------------- analyses
+  function trend(s, shortN, longN) {
+    var recent = lastN(s, shortN), base = priorN(s, shortN, longN);
+    if (recent.length < Math.min(3, shortN) || base.length < 5) return null;
+    var a = mean(recent), b = mean(base);
+    return { now: a, base: b, diff: a - b, pct: b ? ((a - b) / b) * 100 : null, n: recent.length };
+  }
+
+  function hardDay(dateIso) {
+    return actsIn(dateIso, dateIso).some(function (a) {
+      return (num(a.te) && a.te >= 3) || (num(a.sec) && a.sec >= 3600);
+    });
+  }
+
+  // ------------------------------------------------------------- tiles
+  var METRICS = [
+    { key: "hrv",    label: "HRV",          unit: "ms",  dec: 0, better: "up",   color: "--recovery" },
+    { key: "rhr",    label: "Ruhepuls",     unit: "bpm", dec: 0, better: "down", color: "--recovery" },
+    { key: "sleep",  label: "Schlaf",       unit: "h",   dec: 1, better: "up",   color: "--recovery" },
+    { key: "bbHigh", label: "Body Battery", unit: "max", dec: 0, better: "up",   color: "--recovery" },
+    { key: "stress", label: "Stress",       unit: "Ø",   dec: 0, better: "down", color: "--load" },
+    { key: "steps",  label: "Schritte",     unit: "",    dec: 0, better: "up",   color: "--load" }
+  ];
+
+  function renderTiles(rows) {
+    var host = clearNode(document.getElementById("tiles"));
+    METRICS.forEach(function (m) {
+      var s = series(rows, m.key), lp = last(s);
+      var base = mean(priorN(s, 1, 7));
+      var tile = el("div", "tile");
+      tile.appendChild(el("div", "label", m.label));
+      var v = el("div", "value");
+      v.appendChild(document.createTextNode(lp ? fmt(lp.v, m.dec) : "–"));
+      if (m.unit) v.appendChild(el("span", "unit", m.unit));
+      tile.appendChild(v);
+      var d = el("div", "delta");
+      if (lp && num(base)) {
+        var diff = lp.v - base, good = (m.better === "up") ? diff > 0 : diff < 0;
+        var sig = Math.abs(diff) >= Math.abs(base) * 0.02;
+        d.className = "delta" + (sig ? (good ? " up" : " down") : "");
+        d.textContent = (diff >= 0 ? "+" : "−") + fmt(Math.abs(diff), m.dec) + " zum Ø der Woche";
+      } else {
+        d.textContent = lp ? "vom " + dmy(lp.d) : "keine Daten";
+      }
+      tile.appendChild(d);
+      var sp = el("div", "spark");
+      tile.appendChild(sp);
+      host.appendChild(tile);
+      sparkline(sp, s, tok(m.color));
+    });
+  }
+
+  // ------------------------------------------------------------- TAB: heute
+  function renderToday() {
+    var rows = slice(), all = allDays();
+    var hrv = series(all, "hrv"), rhr = series(all, "rhr"), sleep = series(all, "sleep");
+    var lh = last(hrv), ls = last(sleep), lr = last(rhr);
+    var host = clearNode(document.getElementById("today-coach"));
+
+    var hTrend = trend(hrv, 3, 21), rTrend = trend(rhr, 3, 21);
+    var pct = hTrend ? hTrend.pct : null;
+
+    if (!lh && !ls) {
+      host.appendChild(coachCard("none", "Keine aktuellen Nachtwerte",
+        "Für die letzten Nächte liegen keine Schlaf- oder HRV-Daten vor.",
+        "Trag die Uhr nachts — ohne Nachtdaten kann dir hier niemand etwas über deine Erholung sagen."));
+    } else {
+      var state, title, text, action;
+      var bits = [];
+      if (lh) bits.push("HRV " + fmt(lh.v, 0) + " ms");
+      if (lr) bits.push("Ruhepuls " + fmt(lr.v, 0) + " bpm");
+      if (ls) bits.push(hoursMin(ls.v) + " Schlaf");
+
+      if (pct !== null && pct >= 4 && (!ls || ls.v >= 6.5)) {
+        state = "good"; title = "Grünes Licht für harte Arbeit";
+        text = bits.join(" · ") + ". Deine HRV liegt " + fmt(Math.abs(pct), 0) +
+               " % über deinem Schnitt der letzten drei Wochen — dein Nervensystem ist erholt.";
+        action = "Heute ist der Tag für die harte Einheit: Intervalle, Tempolauf oder ein langer Lauf. " +
+                 "Solche Tage sind selten, nutz sie.";
+      } else if ((pct !== null && pct <= -8) || (ls && ls.v < 6) ||
+                 (rTrend && rTrend.diff >= 3)) {
+        state = "warn"; title = "Dein Körper bremst";
+        text = bits.join(" · ") + ". " +
+               (pct !== null && pct <= -8 ? "Die HRV liegt " + fmt(Math.abs(pct), 0) + " % unter deinem Schnitt. " : "") +
+               (ls && ls.v < 6 ? "Dazu nur " + hoursMin(ls.v) + " Schlaf. " : "") +
+               (rTrend && rTrend.diff >= 3 ? "Der Ruhepuls ist um " + fmt(rTrend.diff, 0) + " bpm erhöht. " : "") +
+               "Das ist das Muster von zu wenig Schlaf, einem beginnenden Infekt oder zu viel Training.";
+        action = "Heute locker: Spaziergang oder ruhiges Grundlagentempo, bei dem du dich unterhalten kannst. " +
+                 "Und heute Abend eine Stunde früher ins Bett — morgen früh weißt du mehr.";
+      } else {
+        state = "info"; title = "Alles im normalen Bereich";
+        text = bits.join(" · ") + ". Deine Werte liegen nah an deinem eigenen Schnitt — " +
+               "kein Grund zu bremsen, kein Grund für Heldentaten.";
+        action = "Normales Training nach Plan. Wenn du diese Woche noch keine harte Einheit hattest, " +
+                 "ist heute ein guter Tag dafür.";
+      }
+      host.appendChild(coachCard(state, title, text, action));
+    }
+
+    renderTiles(rows);
+    renderWeekCoach();
+    renderWorkouts(rows);
+    renderTable(rows);
+  }
+
+  function renderWeekCoach() {
+    var host = clearNode(document.getElementById("week-coach"));
+    var all = allDays();
+    if (!all.length) { host.appendChild(coachCard("none", "Keine Daten", "", "")); return; }
+    var to = all[all.length - 1].d;
+    var from28 = all[Math.max(0, all.length - 28)].d;
+    var from7 = all[Math.max(0, all.length - 7)].d;
+
+    /* 1 — Belastungssprung (acute vs chronic) */
+    var min7 = actsIn(from7, to).reduce(function (s, a) { return s + (a.sec || 0) / 60; }, 0);
+    var min28 = actsIn(from28, to).reduce(function (s, a) { return s + (a.sec || 0) / 60; }, 0);
+    var chronic = min28 / 4;
+    if (chronic > 10) {
+      var ratio = min7 / chronic;
+      if (ratio > 1.5) {
+        host.appendChild(coachCard("warn", "Du hast den Umfang zu schnell hochgezogen",
+          "Die letzten 7 Tage: " + fmt(min7, 0) + " Trainingsminuten gegen " + fmt(chronic, 0) +
+          " im Schnitt der letzten vier Wochen — das ist das " + fmt(ratio, 1).replace(".", ",") +
+          "-fache. Oberhalb von etwa 1,5 steigt das Verletzungsrisiko deutlich.",
+          "Nächste Woche bewusst auf das Niveau der Vorwochen zurück, dann in 10-%-Schritten aufbauen."));
+      } else if (ratio < 0.7) {
+        host.appendChild(coachCard("info", "Ruhige Woche",
+          "Nur " + fmt(min7, 0) + " Trainingsminuten gegen " + fmt(chronic, 0) +
+          " im Schnitt der letzten vier Wochen.",
+          "Wenn das Absicht war: gut. Wenn nicht, plane für die kommende Woche zwei feste Termine ein — " +
+          "Konstanz bringt mehr als einzelne harte Einheiten."));
+      } else {
+        host.appendChild(coachCard("good", "Dein Umfang wächst gesund",
+          "Die letzten 7 Tage: " + fmt(min7, 0) + " Minuten, Vier-Wochen-Schnitt " + fmt(chronic, 0) +
+          " — Faktor " + fmt(ratio, 1).replace(".", ",") + ", genau im sicheren Korridor.",
+          "Weiter so. Steigere höchstens um 10 % pro Woche, dann bleibt es so."));
+      }
+    }
+
+    /* 2 — Schlafmenge */
+    var sleepAll = series(all, "sleep"), last7sleep = lastN(sleepAll, 7);
+    if (last7sleep.length >= 4) {
+      var avgSleep = mean(last7sleep);
+      var short = last7sleep.filter(function (v) { return v < 7; }).length;
+      if (avgSleep < 7) {
+        host.appendChild(coachCard("warn", "Schlaf ist dein größter Hebel",
+          "Im Schnitt " + hoursMin(avgSleep) + " pro Nacht, " + short + " von " + last7sleep.length +
+          " Nächten unter 7 Stunden. Schlaf ist die Zeit, in der die Anpassung ans Training überhaupt stattfindet.",
+          "Leg die Schlafenszeit fest, nicht die Aufstehzeit: 30 Minuten früher ins Bett, " +
+          "sieben Tage am Stück. Das bringt mehr als jede zusätzliche Trainingseinheit."));
+      } else {
+        host.appendChild(coachCard("good", "Schlafmenge stimmt",
+          "Im Schnitt " + hoursMin(avgSleep) + " pro Nacht in den letzten " + last7sleep.length + " Nächten.",
+          "Halte das. Wenn du den Umfang steigerst, steigt der Schlafbedarf mit."));
+      }
+    }
+
+    /* 3 — Intensitätsverteilung der Woche */
+    var z = zoneTotals(actsIn(from28, to));
+    if (z.total > 600) {
+      var easyPct = ((z.z[0] + z.z[1]) / z.total) * 100;
+      if (easyPct < 70) {
+        host.appendChild(coachCard("warn", "Zu viel Mitteltempo",
+          "Nur " + fmt(easyPct, 0) + " % deiner gesamten Trainingszeit der letzten vier Wochen lagen in Zone 1 und 2. " +
+          "Die bewährte Verteilung ist etwa 80 % locker, 20 % hart — Mitteltempo kostet Erholung, " +
+          "ohne den Reiz einer harten Einheit zu setzen.",
+          "Mach deine lockeren Läufe wirklich locker: Tempo so wählen, dass du in ganzen Sätzen reden kannst. " +
+          "Dafür darf die eine harte Einheit richtig hart sein."));
+      } else {
+        host.appendChild(coachCard("good", "Deine Intensitätsverteilung passt",
+          fmt(easyPct, 0) + " % deiner Trainingszeit lagen locker in Zone 1 und 2 — nah an der 80/20-Regel.",
+          "Beibehalten. Achte darauf, dass die harten 20 % auch wirklich hart sind."));
+      }
+    }
+  }
+
+  function renderWorkouts(rows) {
+    var host = clearNode(document.getElementById("workouts"));
+    var from = rows.length ? rows[0].d : "0000";
+    var list = acts.filter(function (a) { return a.date && a.date >= from; }).slice(0, 12);
+    document.getElementById("acthint").textContent = list.length ? list.length + " im Zeitraum" : "";
+    if (!list.length) {
+      var p = el("p", "hint", "Keine Trainings in diesem Zeitraum.");
+      p.style.margin = "6px 2px"; host.appendChild(p); return;
+    }
+    list.forEach(function (a) {
+      var row = el("div", "w");
+      row.appendChild(el("div", "wdate", dmy(a.date)));
+      var dot = el("div", "wdot");
+      dot.style.background = isRun(a) ? tok("--load") : tok("--axis");
+      row.appendChild(dot);
+      var main = el("div", "wmain");
+      main.appendChild(el("div", "wname", a.name || "Training"));
+      var meta = el("div", "wmeta"), bits = [];
+      if (num(a.km)) bits.push(fmt(a.km, 2) + " km");
+      if (num(a.sec)) bits.push(hm(a.sec));
+      var pc = paceStr(a.km, a.sec);
+      if (pc && isRun(a)) bits.push(pc + " /km");
+      if (num(a.hr)) bits.push(a.hr + " bpm");
+      if (num(a.te)) bits.push("TE " + fmt(a.te, 1));
+      bits.forEach(function (b) { meta.appendChild(el("span", null, b)); });
+      main.appendChild(meta);
+      row.appendChild(main);
+      host.appendChild(row);
+    });
+  }
+
+  function renderTable(rows) {
+    var cols = [
+      { k: "d", h: "Datum", f: function (v) { return dmy(v) + v.slice(0, 4); } },
+      { k: "hrv", h: "HRV", f: function (v) { return fmt(v, 0); } },
+      { k: "rhr", h: "Ruhepuls", f: function (v) { return fmt(v, 0); } },
+      { k: "sleep", h: "Schlaf", f: function (v) { return fmt(v, 1); } },
+      { k: "deep", h: "Tief", f: function (v) { return fmt(v, 1); } },
+      { k: "rem", h: "REM", f: function (v) { return fmt(v, 1); } },
+      { k: "bed", h: "Ins Bett", f: function (v) { return v; } },
+      { k: "sleepScore", h: "Score", f: function (v) { return fmt(v, 0); } },
+      { k: "bbHigh", h: "BB max", f: function (v) { return fmt(v, 0); } },
+      { k: "stress", h: "Stress", f: function (v) { return fmt(v, 0); } },
+      { k: "steps", h: "Schritte", f: function (v) { return fmt(v, 0); } }
+    ];
+    var t = el("table"), thead = el("thead"), htr = el("tr");
+    cols.forEach(function (c) { htr.appendChild(el("th", null, c.h)); });
+    thead.appendChild(htr); t.appendChild(thead);
+    var tb = el("tbody");
+    rows.slice().reverse().forEach(function (r) {
+      var tr = el("tr");
+      cols.forEach(function (c) {
+        var v = r[c.k], has = (c.k === "d") || num(v) || (c.k === "bed" && v);
+        tr.appendChild(el("td", has ? null : "none", has ? c.f(v) : "–"));
+      });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+    clearNode(document.getElementById("tablewrap")).appendChild(t);
+  }
+
+  // ------------------------------------------------------------- TAB: körper
+  function renderBody() {
+    var rows = slice(), all = allDays();
+    var host = clearNode(document.getElementById("body-coach"));
+
+    var hrv = series(all, "hrv"), rhr = series(all, "rhr"), sleep = series(all, "sleep");
+
+    /* HRV-Trend */
+    var ht = trend(hrv, 7, 21);
+    if (ht) {
+      var state = ht.pct >= 3 ? "good" : (ht.pct <= -5 ? "warn" : "info");
+      host.appendChild(coachCard(state, "HRV: " +
+        (ht.pct >= 3 ? "steigend" : ht.pct <= -5 ? "fallend" : "stabil"),
+        "Sieben-Tage-Schnitt " + fmt(ht.now, 0) + " ms gegen " + fmt(ht.base, 0) +
+        " ms in den drei Wochen davor (" + (ht.pct >= 0 ? "+" : "−") + fmt(Math.abs(ht.pct), 0) + " %). " +
+        "Die HRV misst, wie entspannt dein Nervensystem nachts ist: höher heißt erholter.",
+        ht.pct <= -5
+          ? "Fallende HRV über eine Woche kommt fast immer von Schlafmangel, Alkohol, Krankheit oder zu viel Training. " +
+            "Geh die Liste in dieser Reihenfolge durch — und nimm sieben Tage lang Intensität raus."
+          : "Nutze die HRV als Ampel: mehr als 8 % unter deinem Schnitt heißt lockerer Tag, deutlich darüber heißt grünes Licht."));
+    }
+
+    /* Ruhepuls */
+    var rt = trend(rhr, 7, 21);
+    if (rt) {
+      var rstate = rt.diff <= -1 ? "good" : (rt.diff >= 2 ? "warn" : "info");
+      host.appendChild(coachCard(rstate, "Ruhepuls: " +
+        (rt.diff <= -1 ? "sinkend" : rt.diff >= 2 ? "erhöht" : "stabil"),
+        "Sieben-Tage-Schnitt " + fmt(rt.now, 0) + " bpm gegen " + fmt(rt.base, 0) + " bpm davor. " +
+        (rt.diff <= -1 ? "Ein sinkender Ruhepuls ist eines der klarsten Zeichen wachsender Grundlagenausdauer."
+                       : rt.diff >= 2 ? "Ein über Tage erhöhter Ruhepuls bedeutet: dein Körper arbeitet an etwas — Erholung, Infekt oder Stress."
+                       : "Dein Ruhepuls ist konstant."),
+        rt.diff >= 2 ? "Wenn der Wert drei Tage erhöht bleibt: kein hartes Training, viel trinken, früh schlafen."
+                     : "Beobachte den Wert weiter im Wochenvergleich, nicht von Tag zu Tag — einzelne Nächte schwanken immer."));
+    }
+
+    /* Schlafrhythmus */
+    var beds = all.map(function (r) { return bedMinutes(r.bed); }).filter(num).slice(-14);
+    if (beds.length >= 5) {
+      var sd = stdev(beds), avgBed = mean(beds);
+      var bstate = sd <= 30 ? "good" : (sd <= 60 ? "info" : "warn");
+      host.appendChild(coachCard(bstate, "Schlafrhythmus: " +
+        (sd <= 30 ? "sehr regelmäßig" : sd <= 60 ? "brauchbar" : "unruhig"),
+        "Du gehst im Schnitt um " + minutesToClock(avgBed) + " ins Bett, mit einer Schwankung von rund " +
+        fmt(sd, 0) + " Minuten. Ein fester Rhythmus verbessert Tiefschlaf und HRV oft mehr als eine Stunde mehr Zeit im Bett.",
+        sd > 45 ? "Setz dir eine feste Zubettgeh-Zeit (" + minutesToClock(avgBed - 10) +
+                  ") und halte sie auch am Wochenende auf ±30 Minuten genau."
+                : "Halte diesen Rhythmus — er ist ein Teil deiner guten Werte."));
+    }
+
+    /* Schlafstruktur */
+    var deepV = vals(series(all, "deep")), remV = vals(series(all, "rem")), totV = vals(series(all, "sleep"));
+    if (deepV.length >= 5 && totV.length >= 5) {
+      var deepPct = (mean(deepV) / mean(totV)) * 100, remPct = (mean(remV) / mean(totV)) * 100;
+      var dstate = (deepPct >= 13 && remPct >= 18) ? "good" : "info";
+      host.appendChild(coachCard(dstate, "Schlafstruktur",
+        "Im Schnitt " + fmt(deepPct, 0) + " % Tiefschlaf und " + fmt(remPct, 0) + " % REM. " +
+        "Üblich sind grob 13–23 % Tiefschlaf (körperliche Reparatur) und 20–25 % REM (Nervensystem, Lernen).",
+        deepPct < 13
+          ? "Tiefschlaf sitzt in der ersten Nachthälfte: früher ins Bett bringt ihn, späteres Aufstehen nicht. " +
+            "Alkohol am Abend und Training spät am Tag drücken ihn am stärksten."
+          : (remPct < 18
+              ? "REM sitzt in der zweiten Nachthälfte — die holst du nur über Schlafdauer. Eine halbe Stunde länger liegen bleiben."
+              : "Struktur passt. Wenn sie kippt, ist meistens Alkohol, später Sport oder Stress die Ursache.")));
+    }
+
+    /* Atmung / SpO2 als Frühwarnung */
+    var resp = series(all, "resp"), rp = trend(resp, 3, 21);
+    if (rp && rp.diff >= 1.5) {
+      host.appendChild(coachCard("warn", "Deine Atemfrequenz ist erhöht",
+        "Nachts " + fmt(rp.now, 1) + " Atemzüge pro Minute gegen sonst " + fmt(rp.base, 1) + ". " +
+        "Eine über mehrere Nächte erhöhte Atemfrequenz geht einem Infekt oft ein bis zwei Tage voraus.",
+        "Nimm Intensität raus, schlaf mehr und trink mehr. Wenn Halskratzen oder Müdigkeit dazukommen: Pause."));
+    }
+
+    renderBodyCharts(rows);
+    renderSleepHrvCompare(all);
+    renderBodyRows(rows);
+  }
+
+  function renderBodyCharts(rows) {
+    var hrv = series(rows, "hrv"), rhr = series(rows, "rhr"), stress = series(rows, "stress"),
+        steps = series(rows, "steps"), bb = series(rows, "bbHigh");
+
+    function nowText(id, s, dec, unit) {
+      var lp = last(s);
+      var n = document.getElementById(id);
+      clearNode(n);
+      if (!lp) { n.textContent = "keine Werte"; return; }
+      var b = el("b", null, fmt(lp.v, dec));
+      n.appendChild(b);
+      n.appendChild(document.createTextNode(" " + unit + " · " + dmy(lp.d)));
+    }
+    nowText("now-hrv", hrv, 0, "ms");
+    nowText("now-rhr", rhr, 0, "bpm");
+    nowText("now-stress", stress, 0, "Ø");
+    nowText("now-steps", steps, 0, "Schritte");
+    nowText("now-bb", bb, 0, "max");
+
+    drawChart(document.getElementById("c-hrv"), hrv,
+      { color: tok("--recovery"), dec: 0, unit: "ms", tipLabel: "HRV", aria: "HRV über Nacht" });
+    drawChart(document.getElementById("c-rhr"), rhr,
+      { color: tok("--recovery"), dec: 0, unit: "bpm", tipLabel: "Ruhepuls", aria: "Ruhepuls" });
+    drawChart(document.getElementById("c-stress"), stress,
+      { kind: "bar", zero: true, color: tok("--load"), dec: 0, unit: "", tipLabel: "Stress Ø",
+        aria: "Stresslevel im Tagesschnitt" });
+    drawChart(document.getElementById("c-steps"), steps,
+      { kind: "bar", zero: true, color: tok("--load"), dec: 0, unit: "Schritte", tipLabel: "",
+        aria: "Schritte pro Tag", tick: function (t) { return t >= 1000 ? (t / 1000) + "k" : String(t); } });
+    drawChart(document.getElementById("c-bb"), bb,
+      { color: tok("--recovery"), dec: 0, unit: "", tipLabel: "Body Battery bis", zero: true,
+        aria: "Body Battery Höchststand" });
+
+    /* Schlafphasen gestapelt */
+    var stackRows = rows.map(function (r) {
+      var parts = [
+        { v: num(r.deep) ? r.deep : null, color: tok("--deep") },
+        { v: num(r.light) ? r.light : null, color: tok("--lightsl") },
+        { v: num(r.rem) ? r.rem : null, color: tok("--rem") }
+      ];
+      var tot = parts.reduce(function (s, p) { return s + (p.v || 0); }, 0);
+      return { d: r.d, parts: parts, total: tot > 0 ? tot : null,
+               deep: r.deep, light: r.light, rem: r.rem, score: r.sleepScore };
+    });
+    var sleepHost = document.getElementById("c-sleepstack");
+    if (stackRows.some(function (r) { return num(r.total); })) {
+      drawChart(sleepHost, stackRows, {
+        kind: "stack", zero: true, dec: 1, aria: "Schlafphasen pro Nacht",
+        color: tok("--lightsl"),
+        tipText: function (p) {
+          return "Gesamt " + hoursMin(p.total) + "\nTief " + hoursMin(p.deep) +
+                 " · Leicht " + hoursMin(p.light) + " · REM " + hoursMin(p.rem) +
+                 (num(p.score) ? "\nSchlafscore " + p.score : "");
+        }
+      });
+    } else {
+      emptyChart(sleepHost, "Keine Schlafphasen im Zeitraum.");
+    }
+    var leg = clearNode(document.getElementById("leg-sleep"));
+    [["Tiefschlaf", "--deep"], ["Leichtschlaf", "--lightsl"], ["REM", "--rem"]].forEach(function (p) {
+      var s = el("span"); var i = el("i"); i.style.background = tok(p[1]);
+      s.appendChild(i); s.appendChild(document.createTextNode(p[0])); leg.appendChild(s);
+    });
+    var lsleep = last(series(rows, "sleep"));
+    var nsl = clearNode(document.getElementById("now-sleep"));
+    if (lsleep) {
+      nsl.appendChild(el("b", null, hoursMin(lsleep.v)));
+      nsl.appendChild(document.createTextNode(" · " + dmy(lsleep.d)));
+    } else { nsl.textContent = "keine Werte"; }
+
+    /* Zubettgehzeit */
+    var bedSeries = rows.map(function (r) {
+      return { d: r.d, v: num(bedMinutes(r.bed)) ? bedMinutes(r.bed) : null };
+    });
+    var bedHost = document.getElementById("c-bed");
+    if (vals(bedSeries).length >= 2) {
+      drawChart(bedHost, bedSeries, {
+        color: tok("--recovery"), aria: "Zubettgehzeit", padL: 46,
+        tick: function (t) { return minutesToClock(t); },
+        tipText: function (p) { return "Ins Bett um " + minutesToClock(p.v); }
+      });
+      var bedsAll = vals(bedSeries), sdb = stdev(bedsAll);
+      var nb = clearNode(document.getElementById("now-bed"));
+      nb.appendChild(el("b", null, "±" + fmt(sdb, 0) + " min"));
+      nb.appendChild(document.createTextNode(" Schwankung"));
+    } else {
+      emptyChart(bedHost, "Keine Einschlafzeiten im Zeitraum.");
+    }
+
+    /* Schlafstruktur-Durchschnitt */
+    var arch = clearNode(document.getElementById("arch-rows"));
+    var dv = vals(series(rows, "deep")), lv = vals(series(rows, "light")),
+        rv = vals(series(rows, "rem")), av = vals(series(rows, "awake")),
+        tv = vals(series(rows, "sleep")), hrS = vals(series(rows, "sleepHr")),
+        rs = vals(series(rows, "resp")), sp = vals(series(rows, "spo2"));
+    if (tv.length) {
+      var tot = mean(tv);
+      function pctOf(a) { return a.length ? fmt((mean(a) / tot) * 100, 0) + " %" : "–"; }
+      arch.appendChild(mrow("Schlaf gesamt", hoursMin(tot), "Ø über " + tv.length + " Nächte"));
+      arch.appendChild(mrow("Tiefschlaf", hoursMin(mean(dv)), pctOf(dv) + " · normal 13–23 %"));
+      arch.appendChild(mrow("Leichtschlaf", hoursMin(mean(lv)), pctOf(lv)));
+      arch.appendChild(mrow("REM", hoursMin(mean(rv)), pctOf(rv) + " · normal 20–25 %"));
+      arch.appendChild(mrow("Wach im Bett", hoursMin(mean(av)), pctOf(av)));
+      if (hrS.length) arch.appendChild(mrow("Puls im Schlaf", fmt(mean(hrS), 0) + " bpm", "je tiefer, desto erholter"));
+      if (rs.length) arch.appendChild(mrow("Atemfrequenz", fmt(mean(rs), 1) + " /min", "steigt bei Infekt oder Alkohol"));
+      if (sp.length) arch.appendChild(mrow("Sauerstoff", fmt(mean(sp), 0) + " %", "unter 90 % wäre auffällig"));
+      document.getElementById("now-arch").textContent = tv.length + " Nächte";
+    } else {
+      arch.appendChild(el("p", "hint", "Keine Schlafdaten im Zeitraum."));
+    }
+  }
+
+  function renderSleepHrvCompare(all) {
+    var host = clearNode(document.getElementById("cmp-sleep"));
+    var pairs = all.filter(function (r) { return num(r.sleep) && num(r.hrv); });
+    if (pairs.length < 8) {
+      host.appendChild(el("p", "hint",
+        "Dafür brauche ich mindestens acht Nächte mit Schlaf- und HRV-Daten. Aktuell: " + pairs.length + "."));
+      return;
+    }
+    var med = median(pairs.map(function (r) { return r.sleep; }));
+    var longN = pairs.filter(function (r) { return r.sleep >= med; });
+    var shortN = pairs.filter(function (r) { return r.sleep < med; });
+    var hrvLong = mean(longN.map(function (r) { return r.hrv; }));
+    var hrvShort = mean(shortN.map(function (r) { return r.hrv; }));
+    var rhrLong = mean(longN.filter(function (r) { return num(r.rhr); }).map(function (r) { return r.rhr; }));
+    var rhrShort = mean(shortN.filter(function (r) { return num(r.rhr); }).map(function (r) { return r.rhr; }));
+
+    compareBars(host, [
+      { label: "Nächte ab " + hoursMin(med) + " Schlaf", value: hrvLong, color: tok("--recovery"),
+        note: longN.length + " Nächte" + (num(rhrLong) ? " · Ruhepuls " + fmt(rhrLong, 0) + " bpm" : "") },
+      { label: "Kürzere Nächte", value: hrvShort, color: tok("--load"),
+        note: shortN.length + " Nächte" + (num(rhrShort) ? " · Ruhepuls " + fmt(rhrShort, 0) + " bpm" : "") }
+    ], "ms HRV", 0);
+
+    var diff = hrvLong - hrvShort;
+    var p = el("p", "hint");
+    p.style.marginTop = "12px";
+    p.textContent = Math.abs(diff) < 2
+      ? "Bei dir macht die Schlafdauer für die HRV kaum einen Unterschied — dann zählen Rhythmus und Schlafqualität mehr als die reine Stundenzahl."
+      : (diff > 0
+          ? "Deine längeren Nächte bringen dir im Schnitt " + fmt(diff, 0) +
+            " ms mehr HRV. Das ist dein persönlicher Beleg dafür, dass Schlaf bei dir wirkt."
+          : "Ungewöhnlich: in deinen kürzeren Nächten ist die HRV höher. Das passiert, wenn späte harte Einheiten " +
+            "oder Alkohol mit langen Nächten zusammenfallen.");
+    host.appendChild(p);
+  }
+
+  function renderBodyRows(rows) {
+    var host = clearNode(document.getElementById("body-rows"));
+    var st = vals(series(rows, "steps")), goal = last(series(rows, "stepGoal"));
+    var sed = vals(series(rows, "sedH")), fl = vals(series(rows, "floors"));
+    var vig = vals(series(rows, "imVig")), mod = vals(series(rows, "imMod"));
+    var kcal = vals(series(rows, "kcal")), kact = vals(series(rows, "kcalActive"));
+
+    if (st.length) {
+      var avgSteps = mean(st);
+      host.appendChild(mrow("Schritte", fmt(avgSteps, 0) + " Ø",
+        goal ? "Ziel " + fmt(goal.v, 0) + " · erreicht an " +
+               st.filter(function (v) { return v >= goal.v; }).length + " von " + st.length + " Tagen" : ""));
+    }
+    if (sed.length) host.appendChild(mrow("Sitzzeit", fmt(mean(sed), 1) + " h Ø", "pro Tag, außerhalb des Schlafs"));
+    if (fl.length) host.appendChild(mrow("Stockwerke", fmt(mean(fl), 0) + " Ø", "pro Tag"));
+    if (vig.length || mod.length) {
+      var perWeek = (mean(vig) * 2 + mean(mod)) * 7;
+      host.appendChild(mrow("Intensitätsminuten", fmt(perWeek, 0) + " /Woche",
+        "WHO-Empfehlung 150 · intensive Minuten zählen doppelt"));
+    }
+    if (kcal.length) host.appendChild(mrow("Kalorien", fmt(mean(kcal), 0) + " Ø",
+      kact.length ? fmt(mean(kact), 0) + " davon durch Bewegung" : ""));
+  }
+
+  // ------------------------------------------------------------- TAB: sport
+  var sportFilter = null;      /* null -> resolved to the most-run sport at render */
+  var openAct = null;          /* activity id whose detail is expanded */
+
+  function zoneTotals(list) {
+    var z = [0, 0, 0, 0, 0], total = 0;
+    (list || []).forEach(function (a) {
+      if (!a.zones) return;
+      a.zones.forEach(function (v, i) { z[i] += v || 0; total += v || 0; });
+    });
+    return { z: z, total: total };
+  }
+
+  var ZONE_NAMES = ["Zone 1 · sehr locker", "Zone 2 · locker, Grundlage", "Zone 3 · zügig",
+                    "Zone 4 · hart, Schwelle", "Zone 5 · maximal"];
+  function zoneColors() {
+    return [tok("--rem"), tok("--recovery"), tok("--warn"), tok("--load"), tok("--crit")];
+  }
+
+  function sportCounts() {
+    var c = {};
+    acts.forEach(function (a) { c[a.type] = (c[a.type] || 0) + 1; });
+    return Object.keys(c).map(function (t) { return { type: t, n: c[t] }; })
+                 .sort(function (a, b) {
+                   var ra = a.type.indexOf("running") >= 0 ? 1 : 0;
+                   var rb = b.type.indexOf("running") >= 0 ? 1 : 0;
+                   if (ra !== rb) return rb - ra;          /* Laufen ist der Fokus */
+                   return b.n - a.n;
+                 });
+  }
+  function actsOfSport(type) {
+    return acts.filter(function (a) { return a.type === type; })
+               .sort(function (a, b) { return (b.start || "").localeCompare(a.start || ""); });
+  }
+  function isDistanceSport(type) {
+    return ["running", "trail_running", "treadmill_running", "cycling", "road_biking",
+            "mountain_biking", "indoor_cycling", "swimming", "lap_swimming", "open_water_swimming",
+            "hiking", "walking", "other"].indexOf(type) >= 0;
+  }
+  function isSwim(type) { return type && type.indexOf("swim") >= 0; }
+  function isBike(type) { return type && (type.indexOf("cycl") >= 0 || type.indexOf("bik") >= 0); }
+
+  /* speed shown the way each sport is usually read */
+  function speedLabel(a) {
+    if (!num(a.km) || !num(a.sec) || a.km < 0.2) return null;
+    if (isBike(a.type)) return fmt(a.km / (a.sec / 3600), 1) + " km/h";
+    if (isSwim(a.type)) {
+      var per100 = a.sec / (a.km * 10);
+      return Math.floor(per100 / 60) + ":" + String(Math.round(per100 % 60)).padStart(2, "0") + " /100 m";
+    }
+    var p = paceStr(a.km, a.sec);
+    return p ? p + " /km" : null;
+  }
+
+  function finding(kind, title, text, action) {
+    return { kind: kind, title: title, text: text, action: action };
+  }
+
+  /* --------------------------------------------------------------------
+     Per-sport analysis: what is strong, what is weak, what got better.
+     Every finding is derived from this athlete's own numbers.
+     -------------------------------------------------------------------- */
+  function analyzeSport(type, list) {
+    var out = { strengths: [], weaknesses: [], improvements: [] };
+    if (!list.length) return out;
+
+    var sorted = list.slice().sort(function (a, b) { return (a.start || "").localeCompare(b.start || ""); });
+    var weeks = Math.max(1, days.length / 7);
+    var perWeek = list.length / weeks;
+    var run = type.indexOf("running") >= 0;
+
+    /* --- Frequenz --- */
+    var freqText = fmt(perWeek, 1).replace(".", ",") + "-mal pro Woche über " + days.length + " Tage";
+    if (perWeek >= 3) {
+      out.strengths.push(finding("strength", "Regelmäßigkeit",
+        "Du trainierst " + freqText + ". Diese Frequenz baut Form auf, statt sie nur zu halten."));
+    } else if (perWeek < 1.5) {
+      out.weaknesses.push(finding("weakness", "Zu selten",
+        "Nur " + freqText + ". Unter zwei Einheiten pro Woche hält man die Form bestenfalls.",
+        "Plane eine feste dritte Einheit pro Woche ein — auch kurz. Regelmäßigkeit schlägt Länge."));
+    }
+
+    /* --- Intensitätsverteilung --- */
+    var zt = zoneTotals(list);
+    if (zt.total > 600) {
+      var easy = ((zt.z[0] + zt.z[1]) / zt.total) * 100;
+      var hard = ((zt.z[3] + zt.z[4]) / zt.total) * 100;
+      if (easy >= 75 && hard >= 5) {
+        out.strengths.push(finding("strength", "Intensitätsverteilung",
+          fmt(easy, 0) + " % locker, " + fmt(hard, 0) + " % hart — nah an der 80/20-Regel."));
+      } else if (easy >= 75 && hard < 5) {
+        out.weaknesses.push(finding("weakness", "Keine harten Reize",
+          fmt(easy, 0) + " % deiner Zeit liegen in Zone 1–2, nur " + fmt(hard, 0) + " % in Zone 4–5. " +
+          "Die Grundlage stimmt, aber ohne harte Einheiten bewegt sich dein Tempo nicht.",
+          "Eine harte Einheit pro Woche: 5 × 3 Minuten zügig mit 2 Minuten Trab dazwischen."));
+      } else if (easy < 70) {
+        out.weaknesses.push(finding("weakness", "Zu viel Mitteltempo",
+          "Nur " + fmt(easy, 0) + " % in Zone 1–2. Mitteltempo kostet Erholung, ohne einen echten Reiz zu setzen.",
+          "Lockere Einheiten 30–45 Sekunden pro Kilometer langsamer laufen — Sprechtest."));
+      }
+    }
+
+    /* --- Umfang und Steigerung --- */
+    var totalKm = list.reduce(function (s, a) { return s + (a.km || 0); }, 0);
+    if (totalKm > 1) {
+      var half = Math.ceil(sorted.length / 2);
+      var kmEarly = sorted.slice(0, half).reduce(function (s, a) { return s + (a.km || 0); }, 0);
+      var kmLate = sorted.slice(half).reduce(function (s, a) { return s + (a.km || 0); }, 0);
+      if (kmEarly > 0 && kmLate > kmEarly * 1.15) {
+        out.improvements.push(finding("improve", "Umfang gewachsen",
+          "In der zweiten Hälfte des Zeitraums " + fmt(kmLate, 1) + " km gegen " + fmt(kmEarly, 1) +
+          " km in der ersten (+" + fmt(((kmLate - kmEarly) / kmEarly) * 100, 0) + " %)."));
+      } else if (kmLate > 0 && kmLate < kmEarly * 0.8) {
+        out.weaknesses.push(finding("weakness", "Umfang eingebrochen",
+          "Zweite Hälfte " + fmt(kmLate, 1) + " km gegen " + fmt(kmEarly, 1) + " km davor.",
+          "Zurück zur alten Frequenz — lieber kurze Einheiten als ausgelassene."));
+      }
+    }
+
+    /* --- Effizienz: Strecke pro Herzschlag --- */
+    var effRuns = sorted.filter(function (a) { return efficiency(a) && a.km >= 2; });
+    if (effRuns.length >= 4) {
+      var ev = effRuns.map(efficiency), h = Math.floor(ev.length / 2);
+      var e0 = mean(ev.slice(0, h)), e1 = mean(ev.slice(-h));
+      var ch = ((e1 - e0) / e0) * 100;
+      if (ch >= 2) {
+        out.improvements.push(finding("improve", "Mehr Strecke pro Herzschlag",
+          fmt(e1, 2) + " m pro Schlag gegen " + fmt(e0, 2) + " zu Beginn (+" + fmt(ch, 1) +
+          " %). Gleiches Tempo bei weniger Herzarbeit — der ehrlichste Fitnessgewinn."));
+      } else if (ch <= -3) {
+        out.weaknesses.push(finding("weakness", "Effizienz gesunken",
+          fmt(e1, 2) + " m pro Schlag gegen " + fmt(e0, 2) + " zu Beginn (" + fmt(ch, 1) + " %).",
+          "Meist Erholung, Hitze oder ein Infekt. Vergleiche mit HRV und Ruhepuls im Körper-Tab."));
+      } else {
+        out.strengths.push(finding("strength", "Effizienz stabil",
+          "Rund " + fmt(e1, 2) + " Meter pro Herzschlag, ohne Ausreißer nach unten."));
+      }
+    }
+
+    /* --- Tempovielfalt --- */
+    var paces = sorted.filter(function (a) { return num(a.km) && num(a.sec) && a.km >= 2; })
+                      .map(function (a) { return a.sec / a.km; });
+    if (run && paces.length >= 4) {
+      var spread = (Math.max.apply(null, paces) - Math.min.apply(null, paces));
+      if (spread < 45) {
+        out.weaknesses.push(finding("weakness", "Immer dasselbe Tempo",
+          "Zwischen deinem schnellsten und langsamsten Lauf liegen nur " + fmt(spread, 0) +
+          " Sekunden pro Kilometer. Wer immer gleich schnell läuft, trainiert nur eine Fähigkeit.",
+          "Spreiz es: lockere Läufe deutlich langsamer, dafür eine Einheit klar schneller als dein Schnitt."));
+      } else {
+        out.strengths.push(finding("strength", "Tempospanne",
+          fmt(spread, 0) + " Sekunden pro Kilometer zwischen langsamstem und schnellstem Lauf — " +
+          "du trainierst verschiedene Bereiche."));
+      }
+    }
+
+    /* --- Lauftechnik --- */
+    if (run) {
+      var cadence = list.filter(function (a) { return num(a.cad); }).map(function (a) { return a.cad; });
+      if (cadence.length >= 3) {
+        var ac = mean(cadence);
+        if (ac >= 170) {
+          out.strengths.push(finding("strength", "Schrittfrequenz",
+            fmt(ac, 0) + " Schritte pro Minute — kurze, flache Schritte entlasten Knie und Achillessehne."));
+        } else {
+          out.weaknesses.push(finding("weakness", "Schrittfrequenz niedrig",
+            fmt(ac, 0) + " Schritte pro Minute. 170–180 gelten als effizienter: längere Schritte bremsen " +
+            "bei jedem Aufsatz und belasten die Gelenke stärker.",
+            "10 Minuten eines lockeren Laufs mit " + fmt(ac + 5, 0) +
+            " Schritten pro Minute (Metronom-App) — nicht schneller laufen, nur kürzere Schritte."));
+        }
+      }
+      var gcts = list.filter(function (a) { return num(a.gct); }).map(function (a) { return a.gct; });
+      if (gcts.length >= 3) {
+        var ag = mean(gcts);
+        if (ag <= 250) {
+          out.strengths.push(finding("strength", "Bodenkontaktzeit",
+            fmt(ag, 0) + " ms — unter 250 ms gilt als ökonomisch."));
+        } else if (ag > 280) {
+          out.weaknesses.push(finding("weakness", "Lange Bodenkontaktzeit",
+            fmt(ag, 0) + " ms. Je länger der Fuß am Boden bleibt, desto mehr Energie geht verloren.",
+            "Kommt fast immer mit der Schrittfrequenz: mehr Schritte pro Minute verkürzen den Bodenkontakt automatisch."));
+        }
+      }
+      var vrs = list.filter(function (a) { return num(a.vr); }).map(function (a) { return a.vr; });
+      if (vrs.length >= 3) {
+        var av = mean(vrs);
+        if (av <= 7.5) {
+          out.strengths.push(finding("strength", "Wenig Vertikalbewegung",
+            "Vertikales Verhältnis " + fmt(av, 1) + " % — du läufst nach vorn, nicht nach oben."));
+        } else if (av > 8.5) {
+          out.weaknesses.push(finding("weakness", "Viel Vertikalbewegung",
+            "Vertikales Verhältnis " + fmt(av, 1) + " %. Unter 8 % gilt als gut: jeder Zentimeter nach oben " +
+            "ist Energie, die dich nicht nach vorn bringt.",
+            "Höhere Schrittfrequenz und der Gedanke 'leise landen' senken den Wert meist von selbst."));
+        }
+      }
+    }
+
+    /* --- Längste Einheit --- */
+    var longest = sorted.reduce(function (m, a) { return (a.km || 0) > ((m && m.km) || 0) ? a : m; }, null);
+    if (longest && num(longest.km) && totalKm > 0) {
+      var weeklyAvg = totalKm / Math.max(1, weeks);
+      if (run && longest.km > weeklyAvg * 0.6) {
+        out.weaknesses.push(finding("weakness", "Ein Lauf trägt die Woche",
+          "Dein längster Lauf misst " + fmt(longest.km, 1) + " km, dein durchschnittlicher Wochenumfang " +
+          fmt(weeklyAvg, 1) + " km — fast die ganze Woche steckt in einem einzigen Lauf. " +
+          "Das passiert, wenn zu wenige Läufe pro Woche stattfinden, und macht genau diesen Lauf riskant.",
+          "Verteile die Kilometer: zwei kürzere Läufe zusätzlich machen den langen Lauf sicherer."));
+      }
+    }
+
+    /* --- VO2max-Entwicklung --- */
+    var vo2s = vals(series(days, "vo2"));
+    if (run && vo2s.length >= 3) {
+      var d0 = vo2s[0], d1 = vo2s[vo2s.length - 1];
+      if (d1 > d0 + 1) {
+        out.improvements.push(finding("improve", "VO2max gestiegen",
+          "Von " + fmt(d0, 1) + " auf " + fmt(d1, 1) + " ml/kg/min laut Uhr."));
+      } else if (d1 < d0 - 1) {
+        out.weaknesses.push(finding("weakness", "VO2max gefallen",
+          "Von " + fmt(d0, 1) + " auf " + fmt(d1, 1) + " ml/kg/min.",
+          "Die Schätzung der Uhr reagiert auf Hitze, Erholung und Pace — erst ein Trend über Wochen zählt."));
+      } else {
+        out.strengths.push(finding("strength", "VO2max stabil",
+          fmt(d1, 1) + " ml/kg/min — die Uhr sieht deine Ausdauer unverändert."));
+      }
+    }
+
+    /* --- Radfahren: Geschwindigkeit --- */
+    if (isBike(type)) {
+      var sp = sorted.filter(function (a) { return num(a.km) && num(a.sec) && a.km >= 5; });
+      if (sp.length >= 4) {
+        var kmh = sp.map(function (a) { return a.km / (a.sec / 3600); });
+        var hh = Math.floor(kmh.length / 2);
+        var k0 = mean(kmh.slice(0, hh)), k1 = mean(kmh.slice(-hh));
+        if (k1 > k0 * 1.03) {
+          out.improvements.push(finding("improve", "Schneller unterwegs",
+            fmt(k1, 1) + " km/h im Schnitt gegen " + fmt(k0, 1) + " km/h zu Beginn."));
+        }
+        out.strengths.push(finding("strength", "Radumfang",
+          fmt(list.reduce(function (s, a) { return s + (a.km || 0); }, 0), 0) + " km in " +
+          list.length + " Ausfahrten, längste " + fmt(longest.km, 0) + " km."));
+      }
+    }
+
+    /* --- Krafttraining --- */
+    if (type === "strength_training") {
+      var dur = list.filter(function (a) { return num(a.sec); }).map(function (a) { return a.sec / 60; });
+      if (dur.length) {
+        out.strengths.push(finding("strength", "Krafttraining läuft",
+          list.length + " Einheiten, im Schnitt " + fmt(mean(dur), 0) + " Minuten. " +
+          "Kraft schützt beim Laufen vor Verletzungen und verbessert die Ökonomie."));
+      }
+    }
+
+    return out;
+  }
+
+  function findingsBlock(title, items, state) {
+    var sec = el("section");
+    var head = el("div", "sechead");
+    head.appendChild(el("h2", null, title));
+    head.appendChild(el("span", "hint", items.length ? items.length + " Punkte" : "nichts gefunden"));
+    sec.appendChild(head);
+    if (!items.length) {
+      var c = el("div", "card");
+      c.appendChild(el("p", "hint", "Dafür reichen die Daten in diesem Zeitraum noch nicht."));
+      sec.appendChild(c);
+      return sec;
+    }
+    items.forEach(function (f) {
+      sec.appendChild(coachCard(state, f.title, f.text, f.action));
+    });
+    return sec;
+  }
+
+  function renderSport() {
+    var counts = sportCounts();
+    if (!counts.length) return;
+    if (!sportFilter || !counts.some(function (c) { return c.type === sportFilter; })) {
+      var pref = counts.filter(function (c) { return c.type.indexOf("running") >= 0; })[0];
+      sportFilter = pref ? pref.type : counts[0].type;
+    }
+
+    var chips = clearNode(document.getElementById("sportchips"));
+    counts.forEach(function (c) {
+      var b = el("button", "chip", sportName(c.type) + " · " + c.n);
+      b.type = "button";
+      b.setAttribute("aria-pressed", c.type === sportFilter ? "true" : "false");
+      b.addEventListener("click", function () {
+        sportFilter = c.type; openAct = null;
+        try { localStorage.setItem("garmin-sport", c.type); } catch (e) {}
+        renderSport();
+      });
+      chips.appendChild(b);
+    });
+
+    var host = clearNode(document.getElementById("sport-content"));
+    var list = actsOfSport(sportFilter);
+    var a = analyzeSport(sportFilter, list);
+    var run = sportFilter.indexOf("running") >= 0;
+
+    /* Kennzahlen */
+    var kpiSec = el("section");
+    var kh = el("div", "sechead");
+    kh.appendChild(el("h2", null, sportName(sportFilter) + " in Zahlen"));
+    kh.appendChild(el("span", "hint", "letzte " + days.length + " Tage"));
+    kpiSec.appendChild(kh);
+    var tiles = el("div", "tiles four");
+    var totalKm = list.reduce(function (s, x) { return s + (x.km || 0); }, 0);
+    var totalSec = list.reduce(function (s, x) { return s + (x.sec || 0); }, 0);
+    var longest = list.reduce(function (m, x) { return (x.km || 0) > ((m && m.km) || 0) ? x : m; }, null);
+    var fastest = list.filter(function (x) { return num(x.km) && x.km >= 1 && num(x.sec); })
+      .reduce(function (m, x) { return (!m || (x.sec / x.km) < (m.sec / m.km)) ? x : m; }, null);
+
+    function tile(label, value, unit, sub) {
+      var t = el("div", "tile");
+      t.appendChild(el("div", "label", label));
+      var v = el("div", "value");
+      v.appendChild(document.createTextNode(value));
+      if (unit) v.appendChild(el("span", "unit", unit));
+      t.appendChild(v);
+      t.appendChild(el("div", "delta", sub || ""));
+      tiles.appendChild(t);
+    }
+    if (totalKm > 0.5) {
+      tile("Distanz", fmt(totalKm, 1), "km", list.length + " Einheiten");
+      tile("Zeit", hm(totalSec), "", fmt(totalKm / (days.length / 7), 1) + " km pro Woche");
+      tile("Längste", fmt((longest && longest.km) || 0, 1), "km",
+        longest && longest.date ? "am " + dmy(longest.date) : "");
+      tile("Schnellste", fastest ? (speedLabel(fastest) || "–") : "–", "",
+        fastest ? fmt(fastest.km, 1) + " km am " + dmy(fastest.date) : "");
+    } else {
+      tile("Einheiten", String(list.length), "", "im Zeitraum");
+      tile("Zeit", hm(totalSec), "", fmt(totalSec / 60 / (days.length / 7), 0) + " min pro Woche");
+      var hrs = list.filter(function (x) { return num(x.hr); }).map(function (x) { return x.hr; });
+      tile("Ø Puls", hrs.length ? fmt(mean(hrs), 0) : "–", "bpm", "über alle Einheiten");
+      var tes = list.filter(function (x) { return num(x.te); }).map(function (x) { return x.te; });
+      tile("Ø Trainingseffekt", tes.length ? fmt(mean(tes), 1) : "–", "", "1 = leicht, 5 = sehr hart");
+    }
+    kpiSec.appendChild(tiles);
+    host.appendChild(kpiSec);
+
+    /* Stärken / Schwächen / Verbesserungen */
+    host.appendChild(findingsBlock("Stärken", a.strengths, "good"));
+    host.appendChild(findingsBlock("Schwächen", a.weaknesses, "warn"));
+    host.appendChild(findingsBlock("Verbesserungen", a.improvements, "info"));
+
+    /* Verlauf */
+    var chartSec = el("section");
+    var ch = el("div", "sechead");
+    ch.appendChild(el("h2", null, "Verlauf"));
+    ch.appendChild(el("span", "hint", "pro Woche und pro Einheit"));
+    chartSec.appendChild(ch);
+    host.appendChild(chartSec);
+
+    var to = days[days.length - 1].d, from = days[0].d;
+    function chartCard(label, nowStr) {
+      var card = el("div", "card");
+      var head = el("div", "chart-head");
+      head.appendChild(el("span", "label", label));
+      if (nowStr) head.appendChild(el("span", "now", nowStr));
+      card.appendChild(head);
+      var c = el("div", "chart");
+      card.appendChild(c);
+      chartSec.appendChild(card);
+      return c;
+    }
+
+    if (totalKm > 0.5) {
+      var wk = weekBuckets(from, to, function (x) { return x.type === sportFilter ? (x.km || 0) : 0; });
+      drawChart(chartCard("Kilometer pro Woche"), wk,
+        { kind: "bar", zero: true, color: tok("--load"), dec: 1, unit: "km", tipLabel: "" ,
+          aria: "Kilometer pro Woche" });
+    }
+    var wmin = weekBuckets(from, to, function (x) { return x.type === sportFilter ? (x.sec || 0) / 60 : 0; });
+    drawChart(chartCard("Minuten pro Woche"), wmin,
+      { kind: "bar", zero: true, color: tok("--load"), dec: 0, unit: "min", tipLabel: "",
+        aria: "Minuten pro Woche" });
+
+    var byDate = list.slice().sort(function (x, y) { return (x.date || "").localeCompare(y.date || ""); });
+    if (run) {
+      var effS = byDate.filter(function (x) { return efficiency(x) && x.km >= 2; })
+                       .map(function (x) { return { d: x.date, v: efficiency(x), a: x }; });
+      if (effS.length >= 3) {
+        drawChart(chartCard("Meter pro Herzschlag"), effS, {
+          color: tok("--load"), dec: 2, aria: "Laufeffizienz",
+          tipText: function (p) {
+            return fmt(p.v, 2) + " m pro Herzschlag\n" + fmt(p.a.km, 1) + " km · " +
+                   (speedLabel(p.a) || "") + " · " + fmt(p.a.hr, 0) + " bpm";
+          }
+        });
+      }
+      var cadS = byDate.filter(function (x) { return num(x.cad); })
+                       .map(function (x) { return { d: x.date, v: x.cad, a: x }; });
+      if (cadS.length >= 3) {
+        drawChart(chartCard("Schrittfrequenz · spm"), cadS, {
+          color: tok("--load"), dec: 0, aria: "Schrittfrequenz",
+          tipText: function (p) {
+            return fmt(p.v, 0) + " Schritte/min" + (p.a.stride ? "\n" + p.a.stride + " cm Schrittlänge" : "");
+          }
+        });
+      }
+      var vo2S = series(days, "vo2");
+      if (vals(vo2S).length >= 3) {
+        drawChart(chartCard("VO2max · Schätzung der Uhr"), vo2S,
+          { color: tok("--recovery"), dec: 1, tipLabel: "VO2max", aria: "VO2max" });
+      }
+    } else if (totalKm > 0.5) {
+      var spdS = byDate.filter(function (x) { return num(x.km) && num(x.sec) && x.km >= 2; })
+        .map(function (x) { return { d: x.date, v: x.km / (x.sec / 3600), a: x }; });
+      if (spdS.length >= 3) {
+        drawChart(chartCard("Geschwindigkeit · km/h"), spdS, {
+          color: tok("--load"), dec: 1, aria: "Geschwindigkeit",
+          tipText: function (p) {
+            return fmt(p.v, 1) + " km/h\n" + fmt(p.a.km, 1) + " km · " + fmt(p.a.hr || 0, 0) + " bpm";
+          }
+        });
+      }
+    }
+
+    /* Zonen */
+    var zt = zoneTotals(list);
+    if (zt.total > 60) {
+      var zsec = el("section");
+      var zh = el("div", "sechead");
+      zh.appendChild(el("h2", null, "Intensitätsverteilung"));
+      var easyPct = ((zt.z[0] + zt.z[1]) / zt.total) * 100;
+      zh.appendChild(el("span", "hint", fmt(easyPct, 0) + " % locker · Ziel etwa 80 %"));
+      zsec.appendChild(zh);
+      var zcard = el("div", "card");
+      var bar = el("div", "stackbar");
+      var cols = zoneColors();
+      zt.z.forEach(function (secs, i) {
+        if (!secs) return;
+        var d = el("div");
+        d.style.width = (secs / zt.total) * 100 + "%";
+        d.style.background = cols[i];
+        bar.appendChild(d);
+      });
+      zcard.appendChild(bar);
+      var zrows = el("div", "zonerows");
+      zt.z.forEach(function (secs, i) {
+        var row = el("div", "zrow");
+        var ic = el("i"); ic.style.background = cols[i];
+        row.appendChild(ic);
+        row.appendChild(el("div", "zname", ZONE_NAMES[i]));
+        row.appendChild(el("div", "zval", hm(secs)));
+        row.appendChild(el("div", "zpct", fmt((secs / zt.total) * 100, 0) + " %"));
+        zrows.appendChild(row);
+      });
+      zcard.appendChild(zrows);
+      zsec.appendChild(zcard);
+      host.appendChild(zsec);
+    }
+
+    /* Einzelanalyse */
+    var asec = el("section");
+    var ah = el("div", "sechead");
+    ah.appendChild(el("h2", null, "Einzelne Einheiten"));
+    ah.appendChild(el("span", "hint", "antippen für die Detailanalyse"));
+    asec.appendChild(ah);
+    var acard = el("div", "card");
+    var rowsHost = el("div", "rows");
+    if (!list.length) {
+      rowsHost.appendChild(el("p", "hint", "Keine Einheiten dieser Sportart im Zeitraum."));
+    }
+    list.forEach(function (x, idx) {
+      var key = (x.id != null) ? String(x.id) : "i" + idx;
+      var row = el("div", "w actrow");
+      row.setAttribute("role", "button");
+      row.setAttribute("tabindex", "0");
+      row.appendChild(el("div", "wdate", dmy(x.date)));
+      var dot = el("div", "wdot");
+      dot.style.background = run ? tok("--load") : tok("--recovery");
+      row.appendChild(dot);
+      var main = el("div", "wmain");
+      main.appendChild(el("div", "wname", x.name || sportName(x.type)));
+      var meta = el("div", "wmeta"), bits = [];
+      if (num(x.km)) bits.push(fmt(x.km, 2) + " km");
+      if (num(x.sec)) bits.push(hm(x.sec));
+      var sl = speedLabel(x);
+      if (sl) bits.push(sl);
+      if (num(x.hr)) bits.push(x.hr + " bpm");
+      bits.forEach(function (b) { meta.appendChild(el("span", null, b)); });
+      main.appendChild(meta);
+      row.appendChild(main);
+      row.appendChild(el("div", "chev", openAct === key ? "−" : "+"));
+      function toggle() {
+        openAct = (openAct === key) ? null : key;
+        renderSport();
+        if (openAct) {
+          var open = document.querySelector(".actdetail");
+          if (open) open.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }
+      row.addEventListener("click", toggle);
+      row.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+      });
+      rowsHost.appendChild(row);
+      if (openAct === key) rowsHost.appendChild(activityDetail(x, list));
+    });
+    acard.appendChild(rowsHost);
+    asec.appendChild(acard);
+    host.appendChild(asec);
+  }
+
+  /* one session, read against this athlete's own average for that sport */
+  function activityDetail(a, list) {
+    var box = el("div", "actdetail");
+    var peers = list.filter(function (x) { return x !== a; });
+    function avgOf(key, minKm) {
+      var v = peers.filter(function (x) {
+        return num(x[key]) && (!minKm || (num(x.km) && x.km >= minKm));
+      }).map(function (x) { return x[key]; });
+      return v.length >= 2 ? mean(v) : null;
+    }
+    function cmp(value, avg, betterUp, dec, unit) {
+      if (!num(value)) return null;
+      var line = el("div", "dm");
+      line.appendChild(el("div", "dmv", fmt(value, dec) + (unit ? " " + unit : "")));
+      if (num(avg) && avg !== 0) {
+        var diff = ((value - avg) / avg) * 100;
+        var good = betterUp ? diff > 0 : diff < 0;
+        var tag = el("div", "dmd " + (Math.abs(diff) < 2 ? "" : (good ? "up" : "down")));
+        tag.textContent = (diff >= 0 ? "+" : "−") + fmt(Math.abs(diff), 0) + " % zum Schnitt";
+        line.appendChild(tag);
+      }
+      return line;
+    }
+    function metric(label, node) {
+      if (!node) return;
+      var w = el("div", "dmetric");
+      w.appendChild(el("div", "label", label));
+      w.appendChild(node);
+      grid.appendChild(w);
+    }
+
+    var head = el("div", "dhead");
+    head.appendChild(el("b", null, a.name || sportName(a.type)));
+    head.appendChild(el("span", "hint", (a.start || a.date || "").replace("T", " ")));
+    box.appendChild(head);
+
+    var grid = el("div", "dgrid");
+    if (num(a.km)) metric("Distanz", cmp(a.km, avgOf("km"), true, 2, "km"));
+    if (num(a.sec)) {
+      var t = el("div", "dm"); t.appendChild(el("div", "dmv", hm(a.sec)));
+      metric("Dauer", t);
+    }
+    var sl = speedLabel(a);
+    if (sl) {
+      var sp = el("div", "dm");
+      sp.appendChild(el("div", "dmv", sl));
+      var avgPace = null;
+      var pp = peers.filter(function (x) { return num(x.km) && num(x.sec) && x.km >= 1; });
+      if (pp.length >= 2) avgPace = mean(pp.map(function (x) { return x.sec / x.km; }));
+      if (avgPace && num(a.km) && a.km >= 1) {
+        var mine = a.sec / a.km, d = mine - avgPace;
+        var tag = el("div", "dmd " + (Math.abs(d) < 3 ? "" : (d < 0 ? "up" : "down")));
+        tag.textContent = (d <= 0 ? "−" : "+") + fmt(Math.abs(d), 0) + " s/km zum Schnitt";
+        sp.appendChild(tag);
+      }
+      metric("Tempo", sp);
+    }
+    if (num(a.hr)) metric("Ø Puls", cmp(a.hr, avgOf("hr"), false, 0, "bpm"));
+    if (num(a.maxHr)) {
+      var mh = el("div", "dm"); mh.appendChild(el("div", "dmv", fmt(a.maxHr, 0) + " bpm"));
+      metric("Max Puls", mh);
+    }
+    var ef = efficiency(a);
+    if (ef) {
+      var effAvg = null;
+      var ep = peers.map(efficiency).filter(num);
+      if (ep.length >= 2) effAvg = mean(ep);
+      metric("Meter pro Herzschlag", cmp(ef, effAvg, true, 2, "m"));
+    }
+    if (num(a.cad)) metric("Schrittfrequenz", cmp(a.cad, avgOf("cad"), true, 0, "spm"));
+    if (num(a.stride)) metric("Schrittlänge", cmp(a.stride, avgOf("stride"), true, 0, "cm"));
+    if (num(a.gct)) metric("Bodenkontakt", cmp(a.gct, avgOf("gct"), false, 0, "ms"));
+    if (num(a.vr)) metric("Vertikalverhältnis", cmp(a.vr, avgOf("vr"), false, 1, "%"));
+    if (num(a.pw)) metric("Leistung", cmp(a.pw, avgOf("pw"), true, 0, "W"));
+    if (num(a.up)) {
+      var up = el("div", "dm"); up.appendChild(el("div", "dmv", fmt(a.up, 0) + " hm"));
+      metric("Höhenmeter", up);
+    }
+    if (num(a.cal)) {
+      var c = el("div", "dm"); c.appendChild(el("div", "dmv", fmt(a.cal, 0) + " kcal"));
+      metric("Kalorien", c);
+    }
+    if (num(a.te)) {
+      var te = el("div", "dm");
+      te.appendChild(el("div", "dmv", fmt(a.te, 1)));
+      if (a.teLabel) te.appendChild(el("div", "dmd", a.teLabel.replace(/_/g, " ").toLowerCase()));
+      metric("Trainingseffekt", te);
+    }
+    if (num(a.temp)) {
+      var tp = el("div", "dm"); tp.appendChild(el("div", "dmv", fmt(a.temp, 0) + " °C"));
+      metric("Temperatur", tp);
+    }
+    box.appendChild(grid);
+
+    /* Zonen dieser Einheit */
+    if (a.zones && a.zones.some(function (z) { return z > 0; })) {
+      var total = a.zones.reduce(function (s, z) { return s + (z || 0); }, 0);
+      var bar = el("div", "stackbar");
+      bar.style.height = "16px";
+      var cols = zoneColors();
+      a.zones.forEach(function (secs, i) {
+        if (!secs) return;
+        var d = el("div");
+        d.style.width = (secs / total) * 100 + "%";
+        d.style.background = cols[i];
+        bar.appendChild(d);
+      });
+      var zwrap = el("div");
+      zwrap.style.marginTop = "12px";
+      zwrap.appendChild(el("div", "label", "Herzfrequenzzonen dieser Einheit"));
+      var sp2 = el("div"); sp2.style.height = "6px"; zwrap.appendChild(sp2);
+      zwrap.appendChild(bar);
+      var lg = el("div", "legend");
+      a.zones.forEach(function (secs, i) {
+        if (!secs) return;
+        var s = el("span");
+        var ic = el("i"); ic.style.background = cols[i];
+        s.appendChild(ic);
+        s.appendChild(document.createTextNode("Z" + (i + 1) + " " + hm(secs)));
+        lg.appendChild(s);
+      });
+      zwrap.appendChild(lg);
+      box.appendChild(zwrap);
+    }
+
+    /* Einordnung in Worten */
+    var verdict = [];
+    if (ef) {
+      var ep2 = peers.map(efficiency).filter(num);
+      if (ep2.length >= 2) {
+        var m2 = mean(ep2), dd = ((ef - m2) / m2) * 100;
+        verdict.push(Math.abs(dd) < 2
+          ? "Effizienz auf deinem Normalwert."
+          : (dd > 0 ? "Diese Einheit war " + fmt(dd, 0) + " % effizienter als dein Schnitt — mehr Strecke pro Herzschlag."
+                    : "Diese Einheit war " + fmt(Math.abs(dd), 0) + " % weniger effizient als dein Schnitt."));
+      }
+    }
+    if (a.zones) {
+      var tt = a.zones.reduce(function (s, z) { return s + (z || 0); }, 0);
+      if (tt > 60) {
+        var easyShare = ((a.zones[0] + a.zones[1]) / tt) * 100;
+        verdict.push(easyShare >= 80 ? "Intensität: klar im lockeren Bereich — eine Grundlageneinheit."
+          : easyShare >= 50 ? "Intensität: gemischt, überwiegend zügig."
+          : "Intensität: hart — der Großteil lag oberhalb von Zone 2.");
+      }
+    }
+    if (num(a.temp) && a.temp >= 25) {
+      verdict.push("Bei " + fmt(a.temp, 0) + " °C kostet dasselbe Tempo mehr Puls — der Vergleich fällt dadurch strenger aus, als er sollte.");
+    }
+    var dayRow = days.filter(function (r) { return r.d === a.date; })[0];
+    if (dayRow && num(dayRow.hrv)) {
+      verdict.push("Am selben Tag: HRV " + fmt(dayRow.hrv, 0) + " ms" +
+        (num(dayRow.sleep) ? ", " + hoursMin(dayRow.sleep) + " Schlaf in der Nacht davor" : "") + ".");
+    }
+    if (verdict.length) {
+      var p = el("p", "dverdict", verdict.join(" "));
+      box.appendChild(p);
+    }
+    return box;
+  }
+
+  // ------------------------------------------------------------- TAB: ziel
+  /* Daniels' running model: VO2 demand of a velocity, and the share of
+     VO2max a person can hold for a given duration. Together they turn one
+     performance into a VDOT, and a VDOT back into times and training paces. */
+  function vo2AtVelocity(vMetresPerMin) {
+    return -4.60 + 0.182258 * vMetresPerMin + 0.000104 * vMetresPerMin * vMetresPerMin;
+  }
+  function pctAtTime(tMin) {
+    return 0.8 + 0.1894393 * Math.exp(-0.012778 * tMin) +
+           0.2989558 * Math.exp(-0.1932605 * tMin);
+  }
+  function vdotFor(distM, timeSec) {
+    var tMin = timeSec / 60;
+    if (!(distM > 0) || !(tMin > 0)) return null;
+    return vo2AtVelocity(distM / tMin) / pctAtTime(tMin);
+  }
+  function timeForVdot(vdot, distM) {
+    var lo = 1, hi = 600;                    /* minutes */
+    for (var i = 0; i < 80; i++) {
+      var mid = (lo + hi) / 2;
+      if (vdotFor(distM, mid * 60) > vdot) lo = mid; else hi = mid;
+    }
+    return ((lo + hi) / 2) * 60;
+  }
+  function velocityForPct(vdot, pct) {
+    var target = vdot * pct;                 /* solve the quadratic for v */
+    var a = 0.000104, b = 0.182258, c = -4.60 - target;
+    return (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+  }
+  function paceFromVelocity(v) { return 60000 / v / 10; }   /* sec per km */
+  function secPerKm(v) { return 1000 / (v / 60); }
+  function trainingPaces(vdot) {
+    return [
+      { key: "E", name: "Locker (E)", pct: 0.70,
+        why: "Grundlage. Hier verbringst du die meiste Zeit — du musst dich unterhalten können." },
+      { key: "M", name: "Marathontempo (M)", pct: 0.84,
+        why: "Dein Renntempo für lange Distanzen, im Training für Abschnitte im langen Lauf." },
+      { key: "T", name: "Schwelle (T)", pct: 0.88,
+        why: "Zügig, rund eine Stunde durchhaltbar. 20–30 Minuten am Stück oder 2 × 12 Minuten." },
+      { key: "I", name: "Intervalle (I)", pct: 0.98,
+        why: "Das Tempo, das VO2max hebt. 3–5 Minuten am Stück, gleich lange Trabpause." },
+      { key: "R", name: "Schnell (R)", pct: 1.06,
+        why: "Kurz und schnell für Ökonomie und Laufstil. 200–400 m mit voller Pause." }
+    ].map(function (z) {
+      var v = velocityForPct(vdot, z.pct);
+      z.sec = secPerKm(v);
+      return z;
+    });
+  }
+
+  function parseTime(str) {
+    if (!str) return null;
+    var parts = String(str).trim().split(/[:.\s]+/).filter(function (p) { return p !== ""; });
+    if (!parts.every(function (p) { return /^\d+$/.test(p); })) return null;
+    var n = parts.map(Number);
+    if (n.length === 3) return n[0] * 3600 + n[1] * 60 + n[2];
+    if (n.length === 2) return n[0] * 60 + n[1];
+    if (n.length === 1) return n[0] * 60;
+    return null;
+  }
+  function fmtTime(sec) {
+    if (!num(sec)) return "–";
+    sec = Math.round(sec);
+    var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+    return h ? h + ":" + String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0")
+             : m + ":" + String(s).padStart(2, "0");
+  }
+  function fmtPace(secPerKmVal) {
+    if (!num(secPerKmVal)) return "–";
+    var m = Math.floor(secPerKmVal / 60), s = Math.round(secPerKmVal % 60);
+    if (s === 60) { m += 1; s = 0; }
+    return m + ":" + String(s).padStart(2, "0");
+  }
+
+  var DISTANCES = [
+    { key: "5k", name: "5 km", m: 5000 },
+    { key: "10k", name: "10 km", m: 10000 },
+    { key: "hm", name: "Halbmarathon", m: 21097.5 },
+    { key: "m", name: "Marathon", m: 42195 },
+    { key: "custom", name: "Eigene Distanz", m: null }
+  ];
+  var SWIM_DISTANCES = [
+    { key: "750", name: "750 m", m: 750 },
+    { key: "1500", name: "1,5 km", m: 1500 },
+    { key: "3800", name: "3,8 km", m: 3800 },
+    { key: "custom", name: "Eigene Distanz", m: null }
+  ];
+  var BIKE_DISTANCES = [
+    { key: "20", name: "20 km", m: 20000 },
+    { key: "40", name: "40 km", m: 40000 },
+    { key: "90", name: "90 km", m: 90000 },
+    { key: "180", name: "180 km", m: 180000 },
+    { key: "custom", name: "Eigene Distanz", m: null }
+  ];
+  function distancesFor(sport) {
+    return sport === "cycling" ? BIKE_DISTANCES : sport === "swimming" ? SWIM_DISTANCES : DISTANCES;
+  }
+
+  /* ---- goal storage: artifact db when the page runs on claude.ai, else
+     this browser only. Both are written, so the local file keeps working. ---- */
+  var goal = null;
+  var goalDb = null;
+
+  function goalFromLocal() {
+    try {
+      var raw = localStorage.getItem("garmin-goal");
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+  function goalToLocal(g) {
+    try {
+      if (g) localStorage.setItem("garmin-goal", JSON.stringify(g));
+      else localStorage.removeItem("garmin-goal");
+    } catch (e) {}
+  }
+  function initGoalStore() {
+    goal = goalFromLocal();
+    if (!(window.claude && window.claude.use)) return;
+    window.claude.use("db").then(function (db) {
+      if (!db) return;
+      goalDb = db;
+      return db.doc("goals/current").get().then(function (snap) {
+        if (snap && snap.exists) {
+          var data = snap.data();
+          if (data && data.distM) {
+            goal = data;
+            goalToLocal(goal);
+            if (tab === "ziel") renderGoal();
+          }
+        } else if (goal) {
+          return db.doc("goals/current").set(goal);   /* lift the local goal into the store */
+        }
+      });
+    }).catch(function () {});
+  }
+  function persistGoal(g) {
+    goal = g;
+    goalToLocal(g);
+    if (!goalDb) return;
+    var op = g ? goalDb.doc("goals/current").set(g) : goalDb.doc("goals/current").delete();
+    op.catch(function () {});
+  }
+
+  /* ---- Wer trainiert hier: Alter, Ruhe- und Maximalpuls ---- */
+  function athlete() {
+    var p = (DATA && DATA.profile) || {};
+    var age = null;
+    if (p.birth_date) {
+      var b = new Date(p.birth_date + "T00:00:00"), now = new Date();
+      age = now.getFullYear() - b.getFullYear();
+      var m = now.getMonth() - b.getMonth();
+      if (m < 0 || (m === 0 && now.getDate() < b.getDate())) age--;
+    }
+    var rest = median(lastN(series(days, "rhr"), 14));
+    var observed = acts.reduce(function (m, a) { return num(a.maxHr) ? Math.max(m, a.maxHr) : m; }, 0);
+    /* Tanaka: zuverlässiger als 220 minus Alter. Ein real gemessener höherer
+       Wert schlägt die Schätzung immer. */
+    var tanaka = num(age) ? Math.round(208 - 0.7 * age) : null;
+    var hrMax = Math.max(observed || 0, tanaka || 0) || null;
+    return {
+      age: age, gender: p.gender, weight: p.weight_kg, height: p.height_cm,
+      hrRest: num(rest) ? rest : null, hrMax: hrMax,
+      hrMaxSource: (observed && tanaka && observed > tanaka) ? "gemessen" : "aus deinem Alter geschätzt",
+      vo2: num(p.vo2max_running) ? p.vo2max_running : (vals(series(days, "vo2")).slice(-1)[0] || null),
+      longDays: p.long_training_days || ["SATURDAY"],
+      availableDays: p.available_training_days || null
+    };
+  }
+
+  /* Tempo steigt im aerobfen Bereich annähernd linear mit dem Puls. Aus den
+     eigenen Läufen geschätzt, ergibt das eine persönliche Prognose statt einer
+     Tabellenzahl. */
+  function speedHrFit() {
+    var pts = runs(acts).filter(function (a) {
+      return num(a.speed) && num(a.hr) && num(a.km) && a.km >= 2;
+    }).map(function (a) { return { x: a.hr, y: a.speed }; });
+    if (pts.length < 4) return null;
+    var xs = pts.map(function (p) { return p.x; });
+    var spread = Math.max.apply(null, xs) - Math.min.apply(null, xs);
+    if (spread < 6) return null;                 /* zu wenig Puls-Spanne zum Fitten */
+    var mx = mean(xs), my = mean(pts.map(function (p) { return p.y; }));
+    var nu = 0, de = 0;
+    pts.forEach(function (p) { nu += (p.x - mx) * (p.y - my); de += (p.x - mx) * (p.x - mx); });
+    if (!de) return null;
+    var b = nu / de;
+    if (b <= 0) return null;                     /* kein sinnvoller Zusammenhang */
+    return { a: my - b * mx, b: b, maxHrSeen: Math.max.apply(null, xs), n: pts.length, spread: spread };
+  }
+
+  function raceHrFraction(distM) {
+    return distM >= 42000 ? 0.78 : distM >= 21000 ? 0.85 : distM >= 10000 ? 0.90 : 0.92;
+  }
+
+  function predictFromHr(distM) {
+    var fit = speedHrFit(), ath = athlete();
+    if (!fit || !num(ath.hrMax) || !num(ath.hrRest)) return null;
+    var frac = raceHrFraction(distM);
+    var target = ath.hrRest + frac * (ath.hrMax - ath.hrRest);
+    /* Nie weiter als 20 bpm über den schnellsten gemessenen Lauf hinaus raten */
+    var used = Math.min(target, fit.maxHrSeen + 20);
+    var v = fit.a + fit.b * used;
+    if (!(v > 0)) return null;
+    return { sec: distM / v, hrUsed: used, hrTarget: target, capped: used < target - 0.5, fit: fit };
+  }
+
+  /* Drei Anker, bewusst getrennt gehalten:
+     runs  = was du nachweislich gelaufen bist (Untergrenze)
+     watch = was Garmins VO2max dir zutraut (Obergrenze, meist zu optimistisch)
+     hr    = aus deiner eigenen Puls-Tempo-Beziehung (Arbeitswert) */
+  function fitness(distM) {
+    var ath = athlete();
+    var watchVdot = num(ath.vo2) ? ath.vo2 : null;
+    var runsVdot = null;
+    runs(acts).forEach(function (a) {
+      if (!num(a.km) || !num(a.sec) || a.km < 1.5) return;
+      var vd = vdotFor(a.km * 1000, a.sec);
+      if (vd && (runsVdot === null || vd > runsVdot)) runsVdot = vd;
+    });
+    var hrPred = predictFromHr(distM);
+    var hrVdot = hrPred ? vdotFor(distM, hrPred.sec) : null;
+    return {
+      ath: ath,
+      watchVdot: watchVdot,
+      runsVdot: runsVdot,
+      hrVdot: hrVdot,
+      hrPred: hrPred,
+      work: hrVdot || runsVdot || watchVdot,
+      source: hrVdot ? "hr" : (runsVdot ? "runs" : (watchVdot ? "watch" : null))
+    };
+  }
+
+  var DAY_INDEX = { SUNDAY: 0, MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4, FRIDAY: 5, SATURDAY: 6 };
+  function weekdayName(d) {
+    return ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"][d.getDay()];
+  }
+  /* Tage bis zum nächsten Vorkommen eines Wochentags (1..7) */
+  function daysUntilWeekday(targetIdx) {
+    var todayIdx = new Date().getDay();
+    var diff = (targetIdx - todayIdx + 7) % 7;
+    return diff === 0 ? 7 : diff;
+  }
+
+  function renderGoal() {
+    var host = clearNode(document.getElementById("goal-content"));
+    var stateHint = document.getElementById("goal-state");
+
+    if (!goal || !goal.distM || !goal.timeSec || !goal.date) {
+      stateHint.textContent = "noch kein Ziel gesetzt";
+      var intro = el("div", "card");
+      intro.appendChild(el("p", null,
+        "Trag oben ein Ziel ein — Sportart, Distanz, Zielzeit und Wettkampftag. " +
+        "Danach rechne ich aus deinen eigenen Läufen aus, wo du heute stehst, ob das Ziel realistisch ist, " +
+        "und welche Einheiten dich hinbringen."));
+      var p2 = el("p", "hint", "Das Ziel bleibt gespeichert, auch wenn du die Seite neu lädst.");
+      p2.style.marginTop = "8px";
+      intro.appendChild(p2);
+      host.appendChild(intro);
+      return;
+    }
+
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var raceDate = new Date(goal.date + "T00:00:00");
+    var daysLeft = Math.round((raceDate - today) / 86400000);
+    var weeksLeft = daysLeft / 7;
+    var distName = goal.distName || (fmt(goal.distM / 1000, 1) + " km");
+    stateHint.textContent = distName + " am " + dmy(goal.date) + goal.date.slice(0, 4);
+
+    var isRunGoal = goal.sport === "running";
+    var f = fitness(goal.distM);
+    var predNow = f.hrPred ? f.hrPred.sec : (f.work ? timeForVdot(f.work, goal.distM) : null);
+    var reqVdot = vdotFor(goal.distM, goal.timeSec);
+    var goalPace = goal.timeSec / (goal.distM / 1000);
+
+    /* ---------------- Wo du stehst ---------------- */
+    var statusSec = el("section");
+    var sh = el("div", "sechead");
+    sh.appendChild(el("h2", null, "Wo du stehst"));
+    sh.appendChild(el("span", "hint", daysLeft >= 0
+      ? (daysLeft === 0 ? "heute!" : "noch " + daysLeft + " Tage")
+      : "Wettkampf liegt " + Math.abs(daysLeft) + " Tage zurück"));
+    statusSec.appendChild(sh);
+
+    var tiles = el("div", "tiles four");
+    function tile(label, value, unit, sub) {
+      var t = el("div", "tile");
+      t.appendChild(el("div", "label", label));
+      var v = el("div", "value");
+      v.appendChild(document.createTextNode(value));
+      if (unit) v.appendChild(el("span", "unit", unit));
+      t.appendChild(v);
+      t.appendChild(el("div", "delta", sub || ""));
+      tiles.appendChild(t);
+    }
+    tile("Zielzeit", fmtTime(goal.timeSec), "", distName + " · " + fmtPace(goalPace) + " /km");
+    if (isRunGoal && predNow) {
+      tile("Heute realistisch", fmtTime(predNow), "",
+        f.source === "hr" ? "aus deiner Puls-Tempo-Kurve" : "aus deinen Läufen");
+      var gapSec = predNow - goal.timeSec;
+      tile("Abstand", (gapSec > 0 ? "−" : "+") + fmtTime(Math.abs(gapSec)), "",
+        gapSec > 0 ? "so viel fehlt noch" : "du wärst schon schneller");
+    } else {
+      tile("Heute realistisch", "–", "", "zu wenig Läufe mit Puls");
+      tile("Abstand", "–", "", "");
+    }
+    tile("Zeit bis dahin", daysLeft >= 0 ? fmt(weeksLeft, 1).replace(".", ",") : "0", "Wochen",
+      dmy(goal.date) + goal.date.slice(0, 4));
+    statusSec.appendChild(tiles);
+
+    /* Wie diese Zahl zustande kommt -- inklusive der Spannweite */
+    if (isRunGoal && f.work) {
+      var spanCard = el("div", "card");
+      spanCard.style.marginTop = "10px";
+      spanCard.appendChild(el("div", "label", "Woher die Prognose kommt"));
+      var rows = el("div", "rows");
+      if (f.runsVdot) {
+        var tRuns = timeForVdot(f.runsVdot, goal.distM);
+        rows.appendChild(mrow("Aus deinem besten Trainingslauf", fmtTime(tRuns),
+          "Untergrenze — kein Lauf davon war am Limit"));
+      }
+      if (f.hrPred) {
+        rows.appendChild(mrow("Aus deiner Puls-Tempo-Kurve", fmtTime(f.hrPred.sec),
+          "bei " + fmt(f.hrPred.hrUsed, 0) + " bpm Renntempo-Puls" +
+          (f.hrPred.capped ? " (begrenzt, weil darüber keine Daten liegen)" : "")));
+      }
+      if (f.watchVdot) {
+        rows.appendChild(mrow("Aus Garmins VO2max " + fmt(f.watchVdot, 1),
+          fmtTime(timeForVdot(f.watchVdot, goal.distM)),
+          "Obergrenze — gilt nur mit passendem Training"));
+      }
+      spanCard.appendChild(rows);
+      var ath = f.ath;
+      spanCard.appendChild(el("p", "hint",
+        "Gerechnet mit Ruhepuls " + fmt(ath.hrRest, 0) + " und Maximalpuls " + fmt(ath.hrMax, 0) +
+        " (" + ath.hrMaxSource + (num(ath.age) ? ", " + ath.age + " Jahre" : "") + "). " +
+        "Wenn du deinen echten Maximalpuls kennst und er abweicht, verschiebt sich die Prognose mit. " +
+        "Garmins VO2max ist ein Laborwert — als Wettkampfprognose ist sie fast immer zu optimistisch, " +
+        "deshalb steht sie hier nur als obere Grenze."));
+      statusSec.appendChild(spanCard);
+    }
+    host.appendChild(statusSec);
+
+    /* ---------------- Machbarkeit ---------------- */
+    var verdictSec = el("section");
+    var vh = el("div", "sechead");
+    vh.appendChild(el("h2", null, "Ist das Ziel realistisch?"));
+    vh.appendChild(el("span", "hint", "aus deinen Werten gerechnet"));
+    verdictSec.appendChild(vh);
+
+    var mineRuns = isRunGoal ? runs(acts) : acts.filter(function (a) { return a.type === goal.sport; });
+    var weeklyKm = mineRuns.filter(function (a) {
+      return days.length && a.date >= days[Math.max(0, days.length - 28)].d;
+    }).reduce(function (s, a) { return s + (a.km || 0); }, 0) / 4;
+
+    if (!isRunGoal) {
+      verdictSec.appendChild(coachCard("info", "Für " + sportName(goal.sport) + " rechne ich gröber",
+        "Das Prognosemodell hier ist für das Laufen entwickelt; auf " + sportName(goal.sport) +
+        " lässt es sich nicht sauber übertragen, weil Material, Windschatten und Strecke zu stark mitentscheiden. " +
+        "Die Planstruktur unten gilt trotzdem: Umfang aufbauen, überwiegend locker, eine harte Einheit pro Woche.",
+        "Nimm als Maßstab deine eigenen Einheiten auf ähnlicher Distanz statt einer Modellprognose."));
+    } else if (!f.work) {
+      verdictSec.appendChild(coachCard("none", "Mir fehlt deine aktuelle Form",
+        "Für eine Prognose brauche ich mehrere Läufe mit Pulsdaten oder eine VO2max-Schätzung deiner Uhr.",
+        "Lauf drei- bis viermal mit der Uhr, gern unterschiedlich schnell — danach rechne ich neu."));
+    } else {
+      var workVdot = vdotFor(goal.distM, predNow);
+      var gap = reqVdot - workVdot;
+      var possible = Math.min(weeksLeft * 0.2, 6);      /* grob 0,2 VDOT-Punkte pro Woche */
+      var state, title, text, action;
+
+      if (gap <= 0) {
+        state = "good"; title = "Dein Ziel liegt unter dem, was heute schon drin ist";
+        text = "Realistisch gerechnet läufst du " + distName + " heute in etwa " + fmtTime(predNow) +
+               " — schneller als deine Zielzeit. Das setzt einen echten Wettkampf voraus: ausgeruht, " +
+               "gleichmäßig eingeteilt.";
+        action = "Setz das Ziel schärfer (" + fmtTime(predNow * 0.97) +
+                 " wäre ambitioniert) — oder nimm dir vor, die Distanz erstmals sicher durchzulaufen.";
+      } else if (gap <= possible * 0.6) {
+        state = "good"; title = "Realistisch";
+        text = "Dir fehlen rund " + fmt(gap, 1) + " VDOT-Punkte. In " + fmt(weeksLeft, 0) +
+               " Wochen sind bei konsequentem Training etwa " + fmt(possible, 1) + " möglich — du hast Luft.";
+        action = "Halte dich an den Plan unten. Dein größter Hebel ist der Umfang, nicht die Härte.";
+      } else if (gap <= possible) {
+        state = "warn"; title = "Ambitioniert, aber machbar";
+        text = "Dir fehlen " + fmt(gap, 1) + " VDOT-Punkte, realistisch sind in " + fmt(weeksLeft, 0) +
+               " Wochen etwa " + fmt(possible, 1) + ". Das geht nur, wenn kaum eine Woche ausfällt.";
+        action = "Drei bis vier Läufe pro Woche ohne Lücken — und schlaf dich in die Anpassung hinein.";
+      } else {
+        var realistic = timeForVdot(workVdot + possible, goal.distM);
+        state = "crit"; title = "So nicht zu schaffen";
+        text = "Für " + fmtTime(goal.timeSec) + " bräuchtest du " + fmt(gap, 1) +
+               " VDOT-Punkte mehr; in " + fmt(weeksLeft, 0) + " Wochen sind etwa " + fmt(possible, 1) +
+               " drin. Ehrlich gerechnet landest du bei etwa " + fmtTime(realistic) + ".";
+        action = "Nimm " + fmtTime(realistic) + " als Ziel für diesen Wettkampf, oder verschieb ihn um rund " +
+                 fmt(Math.max(1, (gap - possible) / 0.2), 0) + " Wochen.";
+      }
+      verdictSec.appendChild(coachCard(state, title, text, action));
+
+      /* Umfang trägt die Distanz -- oder eben nicht */
+      if (goal.distM >= 10000 && weeklyKm > 0 && weeklyKm < goal.distM / 1000) {
+        verdictSec.appendChild(coachCard("warn", "Dein Umfang trägt die Distanz noch nicht",
+          "Du läufst " + fmt(weeklyKm, 1) + " km pro Woche, der Wettkampf ist " +
+          fmt(goal.distM / 1000, 1) + " km lang. Eine Prognose sagt, welches Tempo dein Herz-Kreislauf-System " +
+          "hergibt — ob Muskeln, Sehnen und Kopf die Strecke durchhalten, entscheidet der Umfang.",
+          "Bau den Wochenumfang auf mindestens das Zwei- bis Dreifache der Wettkampfdistanz auf, " +
+          "und den langen Lauf schrittweise Richtung " + fmt(Math.min(goal.distM / 1000 * 0.9, 32), 0) + " km."));
+      }
+
+      /* Fortschritt seit dem Setzen des Ziels */
+      var startV = num(goal.startVdot) ? goal.startVdot : workVdot;
+      if (reqVdot > startV + 0.2) {
+        var prog = Math.max(0, Math.min(1, (workVdot - startV) / (reqVdot - startV)));
+        var pcard = el("div", "card");
+        var prow = el("div", "cmprow");
+        var pl = el("div", "cl");
+        pl.appendChild(el("span", null, "Fortschritt seit du das Ziel gesetzt hast"));
+        pl.appendChild(el("b", null, fmt(prog * 100, 0) + " %"));
+        prow.appendChild(pl);
+        var track = el("div", "track"), fill = el("div", "fill");
+        fill.style.width = Math.max(2, prog * 100) + "%";
+        fill.style.background = tok("--good");
+        track.appendChild(fill);
+        prow.appendChild(track);
+        var note = el("div", "hint", "Start " + fmt(startV, 1) + " · heute " + fmt(workVdot, 1) +
+          " · nötig " + fmt(reqVdot, 1) + " VDOT" +
+          (goal.createdAt ? " · gesetzt am " + goal.createdAt.slice(8, 10) + "." + goal.createdAt.slice(5, 7) + "." : ""));
+        note.style.marginTop = "4px";
+        prow.appendChild(note);
+        pcard.appendChild(prow);
+        verdictSec.appendChild(pcard);
+      }
+
+      /* Prognose am Wettkampftag */
+      if (daysLeft > 0) {
+        var projected = workVdot + Math.min(weeksLeft * 0.2, 6);
+        var pt = timeForVdot(projected, goal.distM);
+        var fc = el("div", "card");
+        fc.appendChild(el("div", "label", "Prognose am Wettkampftag, wenn du den Plan durchziehst"));
+        fc.appendChild(el("div", "bignum", fmtTime(pt)));
+        fc.appendChild(el("p", "hint",
+          "Heute realistisch " + fmtTime(predNow) + ", mit " + fmt(weeksLeft, 0) +
+          " Wochen konsequentem Training etwa " + fmtTime(pt) + ". Ohne neuen Trainingsreiz bliebe es beim heutigen Wert."));
+        verdictSec.appendChild(fc);
+      }
+    }
+    host.appendChild(verdictSec);
+
+    /* ---------------- Trainingstempos ---------------- */
+    if (isRunGoal && predNow) {
+      var vdotWork = vdotFor(goal.distM, predNow);
+      var paceSec = el("section");
+      var ph = el("div", "sechead");
+      ph.appendChild(el("h2", null, "Deine Trainingstempos"));
+      ph.appendChild(el("span", "hint", "aus deiner realistischen Form"));
+      paceSec.appendChild(ph);
+      var pcard2 = el("div", "card");
+      var prows = el("div", "rows");
+      trainingPaces(vdotWork).forEach(function (z) {
+        var r = el("div", "mrow");
+        var nm = el("div", "mname");
+        nm.appendChild(el("div", null, z.name));
+        var why = el("div", "msub", z.why);
+        why.style.marginTop = "1px";
+        nm.appendChild(why);
+        r.appendChild(nm);
+        r.appendChild(el("div", "mval", fmtPace(z.sec) + " /km"));
+        prows.appendChild(r);
+      });
+      pcard2.appendChild(prows);
+
+      /* Abgleich mit dem, was er tatsächlich läuft */
+      var easyRuns = runs(acts).filter(function (a) { return num(a.km) && num(a.sec) && a.km >= 2; });
+      if (easyRuns.length) {
+        var actualPace = mean(easyRuns.map(function (a) { return a.sec / a.km; }));
+        var ePace = trainingPaces(vdotWork).filter(function (z) { return z.key === "E"; })[0].sec;
+        var diff = actualPace - ePace;
+        var cmpP = el("p", "hint");
+        cmpP.style.marginTop = "10px";
+        cmpP.textContent = "Tatsächlich läufst du im Schnitt " + fmtPace(actualPace) + " /km. " +
+          (Math.abs(diff) < 20
+            ? "Das passt zum lockeren Tempo oben."
+            : (diff > 0
+                ? "Das ist " + fmt(diff, 0) + " Sekunden langsamer als das errechnete lockere Tempo — " +
+                  "völlig in Ordnung, locker darf locker sein. Im Zweifel gilt der Sprechtest, nicht die Uhr."
+                : "Das ist " + fmt(Math.abs(diff), 0) + " Sekunden schneller als das errechnete lockere Tempo — " +
+                  "ein Hinweis, dass deine lockeren Läufe zu zügig sind."));
+        pcard2.appendChild(cmpP);
+      }
+      paceSec.appendChild(pcard2);
+      host.appendChild(paceSec);
+    }
+
+    /* ---------------- Plan ---------------- */
+    host.appendChild(buildPlanSection(goal, f, weeksLeft, daysLeft));
+
+    /* ---------------- Andere Distanzen ---------------- */
+    if (isRunGoal && predNow) {
+      var vdotNow = vdotFor(goal.distM, predNow);
+      var otherSec = el("section");
+      var oh = el("div", "sechead");
+      oh.appendChild(el("h2", null, "Was heute auf anderen Distanzen drin wäre"));
+      oh.appendChild(el("span", "hint", "gleiche Form, andere Strecke"));
+      otherSec.appendChild(oh);
+      var ocard = el("div", "card");
+      var orows = el("div", "rows");
+      DISTANCES.filter(function (d) { return d.m; }).forEach(function (d) {
+        var t = timeForVdot(vdotNow, d.m);
+        var r = el("div", "mrow");
+        r.appendChild(el("div", "mname", d.name));
+        r.appendChild(el("div", "mval", fmtTime(t)));
+        r.appendChild(el("div", "msub", fmtPace(t / (d.m / 1000)) + " /km"));
+        orows.appendChild(r);
+      });
+      ocard.appendChild(orows);
+      ocard.appendChild(el("p", "hint",
+        "Für einen ausgeruhten Wettkampf gerechnet. Je länger die Distanz, desto stärker hängt die Zeit " +
+        "am Wochenumfang — auf der Marathondistanz ist die Realität ohne Umfang deutlich langsamer."));
+      otherSec.appendChild(ocard);
+      host.appendChild(otherSec);
+    }
+  }
+
+  function buildPlanSection(g, f, weeksLeft, daysLeft) {
+    var sec = el("section");
+    var h = el("div", "sechead");
+    h.appendChild(el("h2", null, "Dein Weg dorthin"));
+    h.appendChild(el("span", "hint", "die nächsten 7 Tage konkret"));
+    sec.appendChild(h);
+
+    var isRunGoal = g.sport === "running";
+    var mine = isRunGoal ? runs(acts) : acts.filter(function (a) { return a.type === g.sport; });
+    var last28 = mine.filter(function (a) {
+      return a.date && days.length && a.date >= days[Math.max(0, days.length - 28)].d;
+    });
+    var weeklyKm = last28.reduce(function (s, a) { return s + (a.km || 0); }, 0) / 4;
+    var perWeekNow = last28.length / 4;
+    var longestKm = mine.reduce(function (m, a) { return Math.max(m, a.km || 0); }, 0);
+
+    /* Zielwerte nach Distanz */
+    var d = g.distM;
+    var targetWeekly = d >= 42000 ? 65 : d >= 21000 ? 50 : d >= 10000 ? 40 : 30;
+    var targetLong = d >= 42000 ? 32 : d >= 21000 ? 20 : d >= 10000 ? 14 : 10;
+    var targetRuns = d >= 21000 ? 4 : 3;
+    if (!isRunGoal) { targetWeekly = Math.max(weeklyKm * 1.3, d / 1000 * 2); targetLong = d / 1000 * 0.8; }
+
+    var nextWeekly = Math.min(Math.max(weeklyKm * 1.1, weeklyKm + 2), targetWeekly);
+    var nextLong = Math.min(Math.max(longestKm * 1.1, longestKm + 1), targetLong);
+    var taper = daysLeft >= 0 && weeksLeft <= (d >= 42000 ? 3 : 2);
+
+    /* Lückenanalyse */
+    var gaps = el("div", "card");
+    gaps.appendChild(el("div", "label", "Was zwischen dir und dem Ziel steht"));
+    var grows = el("div", "rows");
+    function gapRow(name, now, need, unit) {
+      var r = el("div", "mrow");
+      r.appendChild(el("div", "mname", name));
+      r.appendChild(el("div", "mval", fmt(now, 1) + " " + unit));
+      var ok = now >= need * 0.95;
+      var sub = el("div", "msub", (ok ? "reicht" : "nötig " + fmt(need, 0) + " " + unit));
+      sub.style.color = ok ? tok("--good-ink") : tok("--warn-ink");
+      r.appendChild(sub);
+      grows.appendChild(r);
+    }
+    gapRow("Wochenumfang", weeklyKm, targetWeekly, "km");
+    gapRow("Längste Einheit", longestKm, targetLong, "km");
+    gapRow("Einheiten pro Woche", perWeekNow, targetRuns, "");
+    gaps.appendChild(grows);
+    var weeksNeeded = weeklyKm > 0 ? Math.log(targetWeekly / weeklyKm) / Math.log(1.1) : null;
+    if (weeksNeeded && weeksNeeded > 0) {
+      var note = el("p", "hint",
+        "Bei 10 % Steigerung pro Woche brauchst du rund " + fmt(weeksNeeded, 0) +
+        " Wochen, um von " + fmt(weeklyKm, 0) + " auf " + fmt(targetWeekly, 0) + " km zu kommen" +
+        (daysLeft > 0 ? " — du hast " + fmt(weeksLeft, 0) + "." : ".") +
+        (weeksNeeded > weeksLeft && daysLeft > 0
+          ? " Das wird knapp: steigere lieber sauber und geh mit weniger Umfang an den Start, " +
+            "als dich auf dem Weg dorthin zu verletzen."
+          : ""));
+      note.style.marginTop = "10px";
+      gaps.appendChild(note);
+    }
+    sec.appendChild(gaps);
+
+    /* Wochenplan */
+    var planCard = el("div", "card");
+    planCard.appendChild(el("div", "label", taper ? "Diese Woche · Wettkampfwoche" : "Diese Woche"));
+    var sessions = [];
+    var predSec = f.hrPred ? f.hrPred.sec : (f.work ? timeForVdot(f.work, g.distM) : null);
+    var paces = (isRunGoal && predSec) ? trainingPaces(vdotFor(g.distM, predSec)) : null;
+    function pace(key) {
+      if (!paces) return "";
+      var z = paces.filter(function (p) { return p.key === key; })[0];
+      return z ? fmtPace(z.sec) + " /km" : "";
+    }
+
+    if (!isRunGoal) {
+      sessions = [
+        { day: 1, title: "Lockere Einheit", detail: "45–75 Minuten in Zone 2, gleichmäßig." },
+        { day: 3, title: "Harte Einheit", detail: "Nach dem Aufwärmen 4 × 6 Minuten zügig, 3 Minuten locker dazwischen." },
+        { day: 5, title: "Lockere Einheit", detail: "45–60 Minuten Zone 2." },
+        { day: 6, title: "Lange Einheit", detail: fmt(nextLong, 0) + " km ruhig, gleichmäßiges Tempo." }
+      ];
+    } else if (taper) {
+      sessions = [
+        { day: 1, title: "Locker kurz", detail: "30 Minuten " + pace("E") + ", danach 4 Steigerungen." },
+        { day: 3, title: "Renntempo antesten", detail: "2 × 8 Minuten im Zielrenntempo (" +
+            fmtPace(g.timeSec / (g.distM / 1000)) + " /km), dazwischen 3 Minuten Trab." },
+        { day: 5, title: "Ausschütteln", detail: "20 Minuten locker, 3 × 20 Sekunden zügig." },
+        { day: 6, title: "Wettkampf oder Generalprobe", detail: "Wenn der Wettkampf noch nicht ist: 40 Minuten locker." }
+      ];
+    } else {
+      var hardIsInterval = (Math.floor(weeksLeft) % 2) === 0;
+      var prefs = (athlete().longDays || ["SATURDAY"]).map(function (d) { return DAY_INDEX[d]; })
+                    .filter(function (i) { return i !== undefined; });
+      var longDay = prefs.length ? daysUntilWeekday(prefs[0]) : 6;
+      sessions = [
+        { day: 1, title: "Locker",
+          detail: "40–50 Minuten " + pace("E") + ". Wenn du reden kannst, stimmt das Tempo." },
+        { day: 2, title: hardIsInterval ? "Intervalle" : "Schwellenlauf",
+          detail: hardIsInterval
+            ? "15 min einlaufen, dann 5 × 3 Minuten " + pace("I") + " mit 2 Minuten Trabpause, 10 min auslaufen."
+            : "15 min einlaufen, dann 20 Minuten am Stück " + pace("T") + ", 10 min auslaufen." },
+        { day: 4, title: "Locker",
+          detail: "35–45 Minuten " + pace("E") + ", am Ende 4 × 20 Sekunden zügig." },
+        { day: longDay, title: "Langer Lauf",
+          detail: fmt(nextLong, 1) + " km " + pace("E") +
+            (d >= 21000 ? ", die letzten 15 Minuten im Marathontempo (" + pace("M") + ")." : ".") }
+      ];
+      if (targetRuns >= 4 && perWeekNow >= 3) {
+        sessions.push({ day: 5, title: "Locker kurz", detail: "30 Minuten " + pace("E") + " zum Auffüllen des Umfangs." });
+      }
+    }
+
+    var srows = el("div", "rows");
+    var base = new Date(); base.setHours(0, 0, 0, 0);
+    sessions.sort(function (a, b) { return a.day - b.day; }).forEach(function (s) {
+      var date = new Date(base.getTime() + s.day * 86400000);
+      var r = el("div", "session");
+      var dcol = el("div", "sday");
+      dcol.appendChild(el("div", "sdayname", weekdayName(date).slice(0, 2)));
+      dcol.appendChild(el("div", "sdaynum", String(date.getDate())));
+      r.appendChild(dcol);
+      var mcol = el("div", "smain");
+      mcol.appendChild(el("div", "stitle", s.title));
+      mcol.appendChild(el("div", "sdetail", s.detail));
+      r.appendChild(mcol);
+      srows.appendChild(r);
+    });
+    planCard.appendChild(srows);
+    planCard.appendChild(el("p", "hint",
+      taper ? "In der Wettkampfwoche geht es nur noch darum, frisch zu werden — Form baut sich jetzt nicht mehr auf."
+            : "Nächste Woche: Wochenumfang etwa " + fmt(nextWeekly, 0) + " km, langer Lauf " +
+              fmt(nextLong, 1) + " km. Alles andere locker."));
+    sec.appendChild(planCard);
+
+    /* Aufbau über die Wochen */
+    if (daysLeft > 7 && weeklyKm > 0) {
+      var buildCard = el("div", "card");
+      buildCard.appendChild(el("div", "label", "Aufbau bis zum Wettkampf"));
+      var wk = [], vol = weeklyKm;
+      var n = Math.min(Math.floor(weeksLeft), 16);
+      for (var i = 1; i <= n; i++) {
+        var taperWeek = (n - i) < (d >= 42000 ? 2 : 1);
+        if (taperWeek) vol = vol * 0.6;
+        else if (i % 4 === 0) vol = vol * 0.85;              /* Entlastungswoche */
+        else vol = Math.min(vol * 1.1, targetWeekly);
+        var dd = new Date(base.getTime() + i * 7 * 86400000);
+        wk.push({ d: dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0") + "-" +
+                     String(dd.getDate()).padStart(2, "0"),
+                  v: Math.round(vol * 10) / 10, taper: taperWeek });
+      }
+      var chost = el("div", "chart");
+      buildCard.appendChild(chost);
+      sec.appendChild(buildCard);
+      drawChart(chost, wk, {
+        kind: "bar", zero: true, color: tok("--load"), dec: 0, unit: "km",
+        aria: "geplanter Wochenumfang",
+        tipText: function (p) {
+          return fmt(p.v, 0) + " km geplant" + (p.taper ? "\nEntlastung vor dem Wettkampf" : "");
+        }
+      });
+      buildCard.appendChild(el("p", "hint",
+        "Jede vierte Woche ist eine Entlastungswoche — dort passiert die Anpassung. " +
+        "Die letzten Wochen laufen bewusst herunter."));
+    }
+    return sec;
+  }
+
+  function fillGoalForm() {
+    var sportSel = document.getElementById("g-sport");
+    var distSel = document.getElementById("g-dist");
+    function fillDistances() {
+      var list = distancesFor(sportSel.value);
+      clearNode(distSel);
+      list.forEach(function (d) {
+        var o = document.createElement("option");
+        o.value = d.key;
+        o.textContent = d.name;
+        distSel.appendChild(o);
+      });
+    }
+    fillDistances();
+    sportSel.addEventListener("change", function () {
+      fillDistances();
+      document.getElementById("f-custom").hidden = distSel.value !== "custom";
+    });
+    distSel.addEventListener("change", function () {
+      document.getElementById("f-custom").hidden = distSel.value !== "custom";
+    });
+
+    if (goal) {
+      sportSel.value = goal.sport || "running";
+      fillDistances();
+      distSel.value = goal.distKey || "custom";
+      document.getElementById("f-custom").hidden = distSel.value !== "custom";
+      if (goal.distKey === "custom") document.getElementById("g-distkm").value = goal.distM / 1000;
+      document.getElementById("g-time").value = fmtTime(goal.timeSec);
+      document.getElementById("g-date").value = goal.date;
+    }
+
+    document.getElementById("g-save").addEventListener("click", function () {
+      var msg = document.getElementById("g-msg");
+      var sport = sportSel.value;
+      var key = distSel.value;
+      var def = distancesFor(sport).filter(function (x) { return x.key === key; })[0];
+      var distM = def && def.m;
+      if (key === "custom") {
+        var km = parseFloat(String(document.getElementById("g-distkm").value).replace(",", "."));
+        distM = num(km) && km > 0 ? km * 1000 : null;
+      }
+      var timeSec = parseTime(document.getElementById("g-time").value);
+      var date = document.getElementById("g-date").value;
+      if (!distM) { msg.textContent = "Bitte eine Distanz angeben."; return; }
+      if (!timeSec) { msg.textContent = "Zielzeit als 45:00 oder 1:45:00 eintragen."; return; }
+      if (!date) { msg.textContent = "Bitte den Wettkampftag wählen."; return; }
+
+      var fitNow = fitness(distM);
+      var predSecNow = fitNow.hrPred ? fitNow.hrPred.sec :
+        (fitNow.work ? timeForVdot(fitNow.work, distM) : null);
+      var g = {
+        sport: sport, distKey: key, distM: distM,
+        distName: key === "custom" ? fmt(distM / 1000, 1) + " km" : def.name,
+        timeSec: timeSec, date: date,
+        createdAt: (goal && goal.createdAt) || new Date().toISOString().slice(0, 10),
+        startVdot: (goal && num(goal.startVdot) && goal.distM === distM)
+          ? goal.startVdot
+          : (predSecNow ? vdotFor(distM, predSecNow) : null)
+      };
+      persistGoal(g);
+      msg.textContent = "Gespeichert.";
+      renderGoal();
+    });
+
+    document.getElementById("g-clear").addEventListener("click", function () {
+      persistGoal(null);
+      document.getElementById("g-time").value = "";
+      document.getElementById("g-date").value = "";
+      document.getElementById("g-msg").textContent = "Ziel gelöscht.";
+      renderGoal();
+    });
+  }
+
+  // ------------------------------------------------------------- chrome
+  function setHeader() {
+    var lp = days.length ? days[days.length - 1] : null;
+    document.getElementById("stand").textContent = lp ? "Stand " + dmy(lp.d) + lp.d.slice(0, 4) : "";
+    document.getElementById("subline").textContent = days.length
+      ? days.length + " Tage · " + acts.length + " Trainings · von deiner Garmin-Uhr"
+      : "Noch keine Daten.";
+    document.getElementById("foot-sync").textContent =
+      "Zuletzt aktualisiert: " + ((DATA && DATA.generated) || "unbekannt") +
+      ". Die Seite zeigt den Stand der letzten Synchronisierung.";
+  }
+
+  function renderActive() {
+    if (tab === "heute") renderToday();
+    else if (tab === "koerper") renderBody();
+    else if (tab === "sport") renderSport();
+    else renderGoal();
+  }
+
+  function selectTab(name) {
+    tab = name;
+    document.querySelectorAll(".tabs button").forEach(function (b) {
+      b.setAttribute("aria-selected", b.dataset.tab === name ? "true" : "false");
+    });
+    ["heute", "koerper", "sport", "ziel"].forEach(function (t) {
+      document.getElementById("panel-" + t).hidden = (t !== name);
+    });
+    document.getElementById("rangectl").hidden = (name === "sport" || name === "ziel");
+    try { localStorage.setItem("garmin-tab", name); } catch (e) {}
+    renderActive();
+  }
+
+  document.querySelectorAll(".tabs button").forEach(function (btn) {
+    btn.addEventListener("click", function () { selectTab(btn.dataset.tab); });
+  });
+
+  document.querySelectorAll(".segmented button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      range = parseInt(btn.dataset.range, 10);
+      document.querySelectorAll(".segmented button").forEach(function (b) {
+        b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+      });
+      try { localStorage.setItem("garmin-range", String(range)); } catch (e) {}
+      renderActive();
+    });
+  });
+
+  var toggle = document.getElementById("tabletoggle");
+  toggle.addEventListener("click", function () {
+    var sec = document.getElementById("tablesec");
+    sec.hidden = !sec.hidden;
+    toggle.setAttribute("aria-expanded", sec.hidden ? "false" : "true");
+    toggle.textContent = sec.hidden ? "Tabelle" : "Tabelle ausblenden";
+    if (!sec.hidden) sec.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  try {
+    var savedRange = parseInt(localStorage.getItem("garmin-range"), 10);
+    if ([7, 30, 45].indexOf(savedRange) >= 0) {
+      range = savedRange;
+      document.querySelectorAll(".segmented button").forEach(function (b) {
+        b.setAttribute("aria-pressed", parseInt(b.dataset.range, 10) === savedRange ? "true" : "false");
+      });
+    }
+  } catch (e) {}
+
+  var rt;
+  window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(renderActive, 150); });
+
+  function start(data) {
+    if (data) {
+      DATA = data;
+      days = data.days || [];
+      acts = data.activities || [];
+    }
+    setHeader();
+    initGoalStore();
+    fillGoalForm();
+    try {
+      var savedSport = localStorage.getItem("garmin-sport");
+      if (savedSport) sportFilter = savedSport;
+    } catch (e) {}
+    var savedTab = "heute";
+    try {
+      var st = localStorage.getItem("garmin-tab");
+      if (["heute", "koerper", "sport", "ziel"].indexOf(st) >= 0) savedTab = st;
+    } catch (e) {}
+    selectTab(savedTab);
+    var gate = document.getElementById("gate");
+    if (gate) gate.hidden = true;
+    var wrap = document.querySelector(".wrap");
+    if (wrap) wrap.hidden = false;
+  }
+
+  /* Die verschluesselte Variante ruft das hier auf, sobald das Passwort stimmt. */
+  window.__garminStart = start;
+  if (DATA) start(null);
+})();
+</script>
