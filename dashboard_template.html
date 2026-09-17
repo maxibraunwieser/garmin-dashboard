@@ -2310,20 +2310,30 @@
     return { a: my - b * mx, b: b, maxHrSeen: Math.max.apply(null, xs), n: pts.length, spread: spread };
   }
 
-  function raceHrFraction(distM) {
-    return distM >= 42000 ? 0.78 : distM >= 21000 ? 0.85 : distM >= 10000 ? 0.90 : 0.92;
+  /* Die Puls-Hochrechnung liefert EINEN Fitnesswert, keine Zeit je Distanz:
+     Tempo an der Schwelle (rund 85 % der Herzfrequenzreserve, was ein etwa
+     einstuendiges Renntempo ist) -> daraus VDOT. Die Unterschiede zwischen
+     5 km und Marathon kommen danach aus dem Ausdauermodell, nicht aus einer
+     zweiten Pulsschaetzung -- sonst faellt der Distanzunterschied weg, sobald
+     zwei Rennpulse in dieselbe Obergrenze laufen. */
+  function thresholdFitness() {
+    var fit = speedHrFit(), ath = athlete();
+    if (!fit || !num(ath.hrMax) || !num(ath.hrRest)) return null;
+    var target = ath.hrRest + 0.85 * (ath.hrMax - ath.hrRest);
+    /* Nie weiter als 20 bpm über den schnellsten gemessenen Lauf hinaus raten */
+    var used = Math.min(target, fit.maxHrSeen + 20);
+    var v = fit.a + fit.b * used;                 /* m/s an der Schwelle */
+    if (!(v > 0)) return null;
+    var vdot = vo2AtVelocity(v * 60) / 0.88;      /* Schwelle = 88 % von VO2max */
+    return { vdot: vdot, v: v, hrUsed: used, hrTarget: target,
+             capped: used < target - 0.5, fit: fit };
   }
 
   function predictFromHr(distM) {
-    var fit = speedHrFit(), ath = athlete();
-    if (!fit || !num(ath.hrMax) || !num(ath.hrRest)) return null;
-    var frac = raceHrFraction(distM);
-    var target = ath.hrRest + frac * (ath.hrMax - ath.hrRest);
-    /* Nie weiter als 20 bpm über den schnellsten gemessenen Lauf hinaus raten */
-    var used = Math.min(target, fit.maxHrSeen + 20);
-    var v = fit.a + fit.b * used;
-    if (!(v > 0)) return null;
-    return { sec: distM / v, hrUsed: used, hrTarget: target, capped: used < target - 0.5, fit: fit };
+    var t = thresholdFitness();
+    if (!t) return null;
+    return { sec: timeForVdot(t.vdot, distM), vdot: t.vdot, hrUsed: t.hrUsed,
+             hrTarget: t.hrTarget, capped: t.capped, fit: t.fit };
   }
 
   /* Drei Anker, bewusst getrennt gehalten:
@@ -2442,8 +2452,8 @@
       }
       if (f.hrPred) {
         rows.appendChild(mrow("Aus deiner Puls-Tempo-Kurve", fmtTime(f.hrPred.sec),
-          "bei " + fmt(f.hrPred.hrUsed, 0) + " bpm Renntempo-Puls" +
-          (f.hrPred.capped ? " (begrenzt, weil darüber keine Daten liegen)" : "")));
+          "Schwellentempo bei " + fmt(f.hrPred.hrUsed, 0) + " bpm" +
+          (f.hrPred.capped ? ", begrenzt auf deinen Messbereich" : "")));
       }
       if (f.watchVdot) {
         rows.appendChild(mrow("Aus Garmins VO2max " + fmt(f.watchVdot, 1),
