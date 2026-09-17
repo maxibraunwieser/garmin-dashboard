@@ -59,20 +59,43 @@ GATE_SCRIPT = """
     return out;
   }
 
-  function unlock(secret, quiet) {
-    if (!secret) return Promise.resolve(false);
+  /* Entschluesselt eine beliebige Huelle -- die eingebettete oder eine frisch geladene. */
+  function decryptEnvelope(env, secret) {
     var enc = new TextEncoder();
     return crypto.subtle.importKey("raw", enc.encode(secret), "PBKDF2", false, ["deriveKey"])
       .then(function (base) {
         return crypto.subtle.deriveKey(
-          { name: "PBKDF2", salt: b64(ENC.salt), iterations: ENC.iterations, hash: "SHA-256" },
+          { name: "PBKDF2", salt: b64(env.salt), iterations: env.iterations, hash: "SHA-256" },
           base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
       })
       .then(function (key) {
-        return crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(ENC.iv) }, key, b64(ENC.data));
+        return crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(env.iv) }, key, b64(env.data));
       })
-      .then(function (buf) {
-        var data = JSON.parse(new TextDecoder().decode(buf));
+      .then(function (buf) { return JSON.parse(new TextDecoder().decode(buf)); });
+  }
+
+  /* Holt die zuletzt veroeffentlichte Fassung nach, ohne die Seite zu verlassen. */
+  window.__garminFetchLatest = function () {
+    var secret = null;
+    try { secret = localStorage.getItem("garmin-pw"); } catch (e) {}
+    if (!secret) return Promise.reject(new Error("kein Passwort gespeichert"));
+    var url = location.pathname + "?t=" + Date.now();
+    return fetch(url, { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.text();
+      })
+      .then(function (html) {
+        var m = html.match(/var ENC = (\{[\s\S]*?\});/);
+        if (!m) throw new Error("kein Datenblock gefunden");
+        return decryptEnvelope(JSON.parse(m[1]), secret);
+      });
+  };
+
+  function unlock(secret, quiet) {
+    if (!secret) return Promise.resolve(false);
+    return decryptEnvelope(ENC, secret)
+      .then(function (data) {
         try { localStorage.setItem("garmin-pw", secret); } catch (e) {}
         window.__garminStart(data);
         return true;

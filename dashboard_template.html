@@ -334,6 +334,37 @@
     outline: 2px solid var(--recovery); outline-offset: 2px;
   }
 
+
+  /* ---------- Aktualisieren-Knopf ---------- */
+  .eyeright { display: inline-flex; align-items: center; gap: 10px; }
+  .refresh {
+    display: inline-flex; align-items: center; gap: 7px;
+    font: inherit; font-size: 13px; font-weight: 500; color: var(--ink2);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
+    padding: 6px 13px 6px 11px; cursor: pointer; white-space: nowrap;
+  }
+  .refresh:hover { color: var(--ink); }
+  .refresh:focus-visible { outline: 2px solid var(--recovery); outline-offset: 2px; }
+  .refresh .rico {
+    width: 13px; height: 13px; border-radius: 50%; flex: none;
+    border: 2px solid var(--axis); border-top-color: var(--recovery);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; line-height: 1;
+  }
+  .refresh[data-state="busy"] { color: var(--ink2); }
+  .refresh[data-state="busy"] .rico { animation: rspin 0.8s linear infinite; }
+  .refresh[data-state="ok"] { color: var(--good-ink); border-color: var(--good); }
+  .refresh[data-state="ok"] .rico { border: 0; color: var(--good-ink); }
+  .refresh[data-state="err"] { color: var(--crit-ink); border-color: var(--crit); }
+  .refresh[data-state="err"] .rico { border: 0; color: var(--crit-ink); }
+  @keyframes rspin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .refresh[data-state="busy"] .rico { animation: none; opacity: .5; }
+  }
+  /* kurzes Aufblitzen der Werte, damit man die Aktualisierung sieht */
+  @keyframes rflash { from { background: rgba(42,120,214,0.18); } to { background: transparent; } }
+  .flash { animation: rflash 1.1s ease-out; border-radius: 8px; }
+
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -353,7 +384,12 @@
   <header>
     <div class="eyebrow">
       <span class="label">Garmin &middot; Tagesform</span>
-      <span class="label" id="stand"></span>
+      <span class="eyeright">
+        <span class="label" id="stand"></span>
+        <button type="button" id="refreshbtn" class="refresh" aria-live="polite">
+          <span class="rico" aria-hidden="true"></span><span class="rlabel">Aktualisieren</span>
+        </button>
+      </span>
     </div>
     <h1 id="headline">Erholung &amp; Belastung</h1>
     <div class="sub" id="subline"></div>
@@ -2892,6 +2928,54 @@
     });
   });
 
+  var refreshBtn = document.getElementById("refreshbtn");
+  var refreshTimer = null;
+  function refreshState(state, label) {
+    if (!refreshBtn) return;
+    refreshBtn.dataset.state = state || "";
+    refreshBtn.querySelector(".rlabel").textContent = label;
+    /* Ring beim Laden, Haken bei Erfolg, Rufzeichen bei Fehler */
+    refreshBtn.querySelector(".rico").textContent =
+      state === "ok" ? "✓" : (state === "err" ? "!" : "");
+    clearTimeout(refreshTimer);
+    if (state === "ok" || state === "err") {
+      refreshTimer = setTimeout(function () {
+        refreshBtn.dataset.state = "";
+        refreshBtn.querySelector(".rlabel").textContent = "Aktualisieren";
+        refreshBtn.querySelector(".rico").textContent = "";
+      }, 3000);
+    }
+  }
+  function hardReload() {
+    var base = location.href.split("?")[0].split("#")[0];
+    location.replace(base + "?t=" + Date.now());
+  }
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", function () {
+      if (refreshBtn.dataset.state === "busy") return;
+      refreshState("busy", "Lade");
+      var before = DATA && DATA.generated;
+      /* Die verschluesselte Fassung kann die Daten nachladen, ohne die Seite
+         zu verlassen; die lokale Datei laedt einfach neu. */
+      if (typeof window.__garminFetchLatest !== "function") { hardReload(); return; }
+      window.__garminFetchLatest().then(function (data) {
+        var changed = !before || data.generated !== before;
+        start(data);
+        refreshState("ok", changed ? "Neue Daten" : "Schon aktuell");
+        if (changed) {
+          var target = document.getElementById("tiles");
+          if (target) {
+            target.classList.remove("flash");
+            void target.offsetWidth;
+            target.classList.add("flash");
+          }
+        }
+      }).catch(function () {
+        refreshState("err", "Fehlgeschlagen");
+      });
+    });
+  }
+
   var hard = document.getElementById("hardreload");
   if (hard) {
     hard.addEventListener("click", function () {
@@ -2923,6 +3007,7 @@
   var rt;
   window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(renderActive, 150); });
 
+  var wired = false;
   function start(data) {
     if (data) {
       DATA = data;
@@ -2930,8 +3015,11 @@
       acts = data.activities || [];
     }
     setHeader();
-    initGoalStore();
-    fillGoalForm();
+    if (!wired) {           /* Formulare und Speicher nur einmal verdrahten */
+      initGoalStore();
+      fillGoalForm();
+      wired = true;
+    }
     try {
       var savedSport = localStorage.getItem("garmin-sport");
       if (savedSport) sportFilter = savedSport;
