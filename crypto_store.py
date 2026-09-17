@@ -37,6 +37,8 @@ def _aesgcm():
 
 def passphrase():
     pw = os.environ.get("DASH_PASSPHRASE")
+    if pw:
+        pw = pw.strip().lstrip("﻿")   # BOM/Zeilenumbruch aus dem Secret entfernen
     if not pw:
         sys.exit("DASH_PASSPHRASE is not set. Without it nothing can be encrypted or read back.")
     if len(pw) < 8:

@@ -168,6 +168,8 @@ def connect():
 
     blob = os.environ.get("GARMIN_TOKEN_B64")
     if blob:
+        # Ein BOM oder Zeilenumbruch rutscht beim Setzen des Secrets leicht mit hinein.
+        blob = blob.strip().lstrip("﻿")
         private_dir(TOKEN_DIR)
         bundle = json.loads(base64.b64decode(blob).decode())
         for name, content in bundle.items():
