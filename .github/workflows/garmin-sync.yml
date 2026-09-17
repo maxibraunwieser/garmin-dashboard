@@ -1,0 +1,81 @@
+name: Garmin sync
+
+# Laeuft jeden Morgen auf GitHubs Servern -- dein PC darf aus sein.
+on:
+  schedule:
+    - cron: "10 4 * * *"      # 06:10 in Oesterreich (Sommerzeit), 05:10 im Winter
+  workflow_dispatch:           # Knopf "Run workflow" fuer sofort
+
+permissions:
+  contents: write              # docs/ zurueckschreiben (verschluesselt)
+  pages: write
+  id-token: write
+
+concurrency:
+  group: garmin-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Abhaengigkeiten installieren
+        run: pip install -r requirements.txt
+
+      - name: Bisherige Historie entschluesseln
+        env:
+          DASH_PASSPHRASE: ${{ secrets.DASH_PASSPHRASE }}
+        run: python crypto_store.py decrypt docs/data.enc garmin/data.json
+
+      - name: Garmin abrufen
+        env:
+          GARMIN_TOKEN_B64: ${{ secrets.GARMIN_TOKEN_B64 }}
+        run: |
+          # Beim allerersten Lauf gibt es noch keine Historie -> mehr holen.
+          if [ -f garmin/data.json ]; then DAYS=7; else DAYS=45; fi
+          echo "Hole $DAYS Tage."
+          python sync_garmin.py --days $DAYS --sink files --out ./garmin
+
+      - name: Seite bauen (Daten verschluesselt)
+        env:
+          DASH_PASSPHRASE: ${{ secrets.DASH_PASSPHRASE }}
+        run: python make_dashboard.py --encrypt
+
+      - name: Historie verschluesselt sichern
+        env:
+          DASH_PASSPHRASE: ${{ secrets.DASH_PASSPHRASE }}
+        run: python crypto_store.py encrypt garmin/data.json docs/data.enc
+
+      - name: Aenderungen zurueckschreiben
+        run: |
+          git config user.name "garmin-sync"
+          git config user.email "garmin-sync@users.noreply.github.com"
+          git add docs/index.html docs/data.enc
+          if git diff --staged --quiet; then
+            echo "Nichts Neues."
+          else
+            git commit -m "Garmin-Daten aktualisiert ($(date -u '+%Y-%m-%d %H:%M UTC'))"
+            git pull --rebase --autostash
+            git push
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: sync
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
