@@ -321,6 +321,19 @@
   .gatecard .primary { width: 100%; margin-top: 10px; padding: 10px; font-size: 15px; }
   .gatecard .hint { margin-top: 10px; min-height: 18px; }
 
+
+  /* ---------- Fussleiste mit Aktionen ---------- */
+  .footlinks { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .footlinks a, .footlinks button {
+    font: inherit; font-size: 13px; color: var(--ink2); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 8px; padding: 7px 13px;
+    text-decoration: none; cursor: pointer;
+  }
+  .footlinks a:hover, .footlinks button:hover { color: var(--ink); }
+  .footlinks a:focus-visible, .footlinks button:focus-visible {
+    outline: 2px solid var(--recovery); outline-offset: 2px;
+  }
+
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -504,6 +517,11 @@
   </div>
 
   <footer>
+    <p class="footlinks">
+      <a href="https://github.com/maxibraunwieser/garmin-dashboard/actions/workflows/garmin-sync.yml"
+         target="_blank" rel="noopener">Neue Garmin-Daten holen</a>
+      <button type="button" id="hardreload">Seite neu laden</button>
+    </p>
     <p id="foot-sync"></p>
     <p>Quelle: dein Garmin-Konto, lokal synchronisiert. Schlaf, HRV und Atmung erscheinen nur f&uuml;r N&auml;chte
        mit getragener Uhr. Die Bewertungen hier sind Faustregeln aus der Trainingslehre, kein medizinischer Rat.</p>
@@ -2873,6 +2891,15 @@
       renderActive();
     });
   });
+
+  var hard = document.getElementById("hardreload");
+  if (hard) {
+    hard.addEventListener("click", function () {
+      /* ?t=... zwingt den Browser und das GitHub-CDN, wirklich neu zu laden */
+      var base = location.href.split("?")[0].split("#")[0];
+      location.replace(base + "?t=" + Date.now());
+    });
+  }
 
   var toggle = document.getElementById("tabletoggle");
   toggle.addEventListener("click", function () {

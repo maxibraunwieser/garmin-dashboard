@@ -40,6 +40,31 @@ Selbst neu bauen: `py make_dashboard.py` (liest `garmin/data.json`, schreibt
 `dashboard.html` fuer lokal und `dashboard_artifact.html` zum Veroeffentlichen).
 Das Aussehen steckt in `dashboard_template.html`.
 
+## Automatisch in der Cloud (PC darf aus sein)
+
+GitHub Actions synchronisiert jeden Morgen um 06:10 selbst und veroeffentlicht die
+Seite auf GitHub Pages:
+
+    https://maximilianbraunwieser.github.io/garmin-dashboard/
+
+Deine Werte liegen dort **nur verschluesselt** (AES-256-GCM, Schluessel aus deinem
+Passwort via PBKDF2/300000). Entschluesselt wird erst im Browser, nachdem du das
+Passwort eingegeben hast; das Handy merkt es sich danach.
+
+Noetige Secrets im Repository (Settings > Secrets and variables > Actions):
+
+| Secret | Inhalt |
+|--------|--------|
+| `GARMIN_TOKEN_B64` | Ausgabe von `py sync_garmin.py --export-ci-token` |
+| `DASH_PASSPHRASE` | dein Passwort fuer die Seite |
+
+Sofort laufen lassen: Actions-Tab > "Garmin sync" > Run workflow.
+Passwort aendern: Secret aendern, danach Workflow einmal laufen lassen (die Seite
+wird mit dem neuen Passwort neu verschluesselt).
+
+Wichtig: `garmin/` und `dashboard.html` stehen in `.gitignore` und duerfen nie ins
+Repository - dort liegen die Daten im Klartext.
+
 ## Running it by hand
 
 Open PowerShell in this folder, then:
