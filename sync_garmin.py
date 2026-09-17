@@ -235,6 +235,21 @@ def fetch_profile(client):
     }
 
 
+def fetch_race_predictions(client):
+    """Garmins eigene Wettkampfprognose (Firstbeat), zum Vergleich mit dem
+    eigenen Modell im Dashboard."""
+    r = quiet(client.get_race_predictions)
+    if not isinstance(r, dict):
+        return None
+    return {
+        "date": r.get("calendarDate"),
+        "sec5k": r.get("time5K"),
+        "sec10k": r.get("time10K"),
+        "secHm": r.get("timeHalfMarathon"),
+        "secM": r.get("timeMarathon"),
+    }
+
+
 def quiet(fn, *args, **kwargs):
     """Call an endpoint; return None instead of exploding if Garmin has no data."""
     try:
@@ -445,7 +460,7 @@ def render_activity(a):
 # sinks
 # --------------------------------------------------------------------------
 
-def write_files(out_dir, activities, wellness, profile=None):
+def write_files(out_dir, activities, wellness, profile=None, race=None):
     daily_dir = os.path.join(out_dir, "daily")
     act_dir = os.path.join(out_dir, "activities")
     os.makedirs(daily_dir, exist_ok=True)
@@ -475,6 +490,8 @@ def write_files(out_dir, activities, wellness, profile=None):
         store["wellness"][w["date"]] = w
     if profile:
         store["profile"] = profile
+    if race:
+        store["race_predictions"] = race
     store["last_sync"] = datetime.now().isoformat(timespec="seconds")
     with open(store_path, "w", encoding="utf-8") as fh:
         json.dump(store, fh, indent=2, sort_keys=True)
@@ -535,6 +552,7 @@ def main():
     print("Pulling {} to {} ...".format(start, end))
 
     profile = fetch_profile(client)
+    race = fetch_race_predictions(client)
     activities = fetch_activities(client, start, end)
     wellness = [fetch_wellness_day(client, start + timedelta(days=i))
                 for i in range((end - start).days + 1)]
@@ -543,7 +561,7 @@ def main():
         print_preview(activities, wellness)
         print("Dry run -- nothing was written.")
     elif args.sink == "files":
-        write_files(args.out, activities, wellness, profile)
+        write_files(args.out, activities, wellness, profile, race)
     else:
         post_to_endpoint(activities, wellness, profile)
 

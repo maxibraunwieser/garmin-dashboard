@@ -211,6 +211,7 @@ def build_payload():
     return {
         "generated": datetime.now().strftime("%d.%m.%Y %H:%M"),
         "profile": store.get("profile") or {},
+        "racePred": store.get("race_predictions") or {},
         "days": days,
         "activities": acts,
     }

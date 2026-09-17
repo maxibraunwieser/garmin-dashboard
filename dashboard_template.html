@@ -2373,6 +2373,16 @@
     return diff === 0 ? 7 : diff;
   }
 
+  /* Garmins eigene Prognose fuer eine Standarddistanz, falls vorhanden */
+  function garminPrediction(distM) {
+    var r = (DATA && DATA.racePred) || {};
+    var key = Math.abs(distM - 5000) < 50 ? "sec5k"
+            : Math.abs(distM - 10000) < 50 ? "sec10k"
+            : Math.abs(distM - 21097.5) < 100 ? "secHm"
+            : Math.abs(distM - 42195) < 200 ? "secM" : null;
+    return key && num(r[key]) ? r[key] : null;
+  }
+
   function renderGoal() {
     var host = clearNode(document.getElementById("goal-content"));
     var stateHint = document.getElementById("goal-state");
@@ -2459,6 +2469,11 @@
         rows.appendChild(mrow("Aus Garmins VO2max " + fmt(f.watchVdot, 1),
           fmtTime(timeForVdot(f.watchVdot, goal.distM)),
           "Obergrenze — gilt nur mit passendem Training"));
+      }
+      var gp = garminPrediction(goal.distM);
+      if (gp) {
+        rows.appendChild(mrow("Garmins eigene Wettkampfprognose", fmtTime(gp),
+          "rechnet deinen Umfang mit ein"));
       }
       spanCard.appendChild(rows);
       var ath = f.ath;
@@ -2640,13 +2655,17 @@
         var r = el("div", "mrow");
         r.appendChild(el("div", "mname", d.name));
         r.appendChild(el("div", "mval", fmtTime(t)));
-        r.appendChild(el("div", "msub", fmtPace(t / (d.m / 1000)) + " /km"));
+        var gpd = garminPrediction(d.m);
+        r.appendChild(el("div", "msub", fmtPace(t / (d.m / 1000)) + " /km" +
+          (gpd ? " · Garmin sagt " + fmtTime(gpd) : "")));
         orows.appendChild(r);
       });
       ocard.appendChild(orows);
       ocard.appendChild(el("p", "hint",
-        "Für einen ausgeruhten Wettkampf gerechnet. Je länger die Distanz, desto stärker hängt die Zeit " +
-        "am Wochenumfang — auf der Marathondistanz ist die Realität ohne Umfang deutlich langsamer."));
+        "Für einen ausgeruhten Wettkampf gerechnet. Wo Garmins eigene Prognose danebensteht: " +
+        "sie bezieht dein Trainingsvolumen mit ein und fällt auf langen Distanzen deshalb meist " +
+        "vorsichtiger aus. Weichen beide stark ab, ist das die ehrlichste Auskunft, die deine Daten hergeben — " +
+        "die Wahrheit liegt dazwischen."));
       otherSec.appendChild(ocard);
       host.appendChild(otherSec);
     }
