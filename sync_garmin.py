@@ -235,6 +235,26 @@ def fetch_profile(client):
     }
 
 
+def fetch_hr_zones(client):
+    """Garmins echte Zonengrenzen und echter Maximalpuls -- zuverlaessiger als
+    eine Alters-Schaetzung. Bevorzugt die Lauf-Zonen, faellt sonst auf die
+    Standardzonen zurueck."""
+    zones = quiet(client.connectapi, "/biometric-service/heartRateZones")
+    if not isinstance(zones, list) or not zones:
+        return None
+    by_sport = {(z.get("sport") or "").upper(): z for z in zones}
+    z = by_sport.get("RUNNING") or by_sport.get("DEFAULT") or zones[0]
+    floors = [z.get("zone{}Floor".format(i)) for i in range(1, 6)]
+    if not all(floors):
+        return None
+    return {
+        "sport": z.get("sport"),
+        "hr_max": z.get("maxHeartRateUsed"),
+        "hr_rest": z.get("restingHeartRateUsed"),
+        "floors": floors,   # untere Grenze von Zone 1..5; Zone 5 endet am Maximalpuls
+    }
+
+
 def fetch_race_predictions(client):
     """Garmins eigene Wettkampfprognose (Firstbeat), zum Vergleich mit dem
     eigenen Modell im Dashboard."""
@@ -460,7 +480,7 @@ def render_activity(a):
 # sinks
 # --------------------------------------------------------------------------
 
-def write_files(out_dir, activities, wellness, profile=None, race=None):
+def write_files(out_dir, activities, wellness, profile=None, race=None, hr_zones=None):
     daily_dir = os.path.join(out_dir, "daily")
     act_dir = os.path.join(out_dir, "activities")
     os.makedirs(daily_dir, exist_ok=True)
@@ -492,6 +512,16 @@ def write_files(out_dir, activities, wellness, profile=None, race=None):
         store["profile"] = profile
     if race:
         store["race_predictions"] = race
+        # Zusaetzlich taggenau ablegen -- die API liefert nur den heutigen Stand,
+        # so waechst am Speicherort trotzdem eine Historie fuer den Verlauf.
+        rdate = race.get("date")
+        if rdate and rdate in store["wellness"]:
+            store["wellness"][rdate]["race_pred_5k"] = race.get("sec5k")
+            store["wellness"][rdate]["race_pred_10k"] = race.get("sec10k")
+            store["wellness"][rdate]["race_pred_hm"] = race.get("secHm")
+            store["wellness"][rdate]["race_pred_m"] = race.get("secM")
+    if hr_zones:
+        store["hr_zones"] = hr_zones
     store["last_sync"] = datetime.now().isoformat(timespec="seconds")
     with open(store_path, "w", encoding="utf-8") as fh:
         json.dump(store, fh, indent=2, sort_keys=True)
@@ -553,6 +583,7 @@ def main():
 
     profile = fetch_profile(client)
     race = fetch_race_predictions(client)
+    hr_zones = fetch_hr_zones(client)
     activities = fetch_activities(client, start, end)
     wellness = [fetch_wellness_day(client, start + timedelta(days=i))
                 for i in range((end - start).days + 1)]
@@ -561,7 +592,7 @@ def main():
         print_preview(activities, wellness)
         print("Dry run -- nothing was written.")
     elif args.sink == "files":
-        write_files(args.out, activities, wellness, profile, race)
+        write_files(args.out, activities, wellness, profile, race, hr_zones)
     else:
         post_to_endpoint(activities, wellness, profile)
 

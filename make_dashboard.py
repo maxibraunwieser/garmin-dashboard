@@ -171,6 +171,10 @@ def build_payload():
             "sedH": round(w["sedentary_seconds"] / 3600.0, 1) if w.get("sedentary_seconds") else None,
             "hrMax": w.get("hr_max_day"),
             "vo2": w.get("vo2max"),
+            "rp5k": w.get("race_pred_5k"),
+            "rp10k": w.get("race_pred_10k"),
+            "rpHm": w.get("race_pred_hm"),
+            "rpM": w.get("race_pred_m"),
             "kcal": w.get("calories_total"),
             "kcalActive": w.get("calories_active"),
             "readiness": w.get("training_readiness"),
@@ -212,6 +216,7 @@ def build_payload():
         "generated": datetime.now().strftime("%d.%m.%Y %H:%M"),
         "profile": store.get("profile") or {},
         "racePred": store.get("race_predictions") or {},
+        "hrZones": store.get("hr_zones") or {},
         "days": days,
         "activities": acts,
     }
