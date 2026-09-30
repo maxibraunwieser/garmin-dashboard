@@ -329,9 +329,16 @@
     border: 1px solid var(--border); border-radius: 8px; padding: 7px 13px;
     text-decoration: none; cursor: pointer;
   }
-  .footlinks a:hover, .footlinks button:hover { color: var(--ink); }
+  .footlinks a.primary-link {
+    color: var(--page); background: var(--ink); border-color: var(--ink); font-weight: 500;
+  }
+  .footlinks a:hover, .footlinks button:hover { opacity: 0.85; }
   .footlinks a:focus-visible, .footlinks button:focus-visible {
     outline: 2px solid var(--recovery); outline-offset: 2px;
+  }
+  .stalewarn {
+    background: var(--surface); border: 1px solid var(--warn); border-left: 3px solid var(--warn);
+    border-radius: 8px; padding: 10px 13px; color: var(--warn-ink); font-size: 13px; margin: 0 0 12px;
   }
 
 
@@ -646,10 +653,16 @@
   </div>
 
   <footer>
+    <p id="stale-warning" class="stalewarn" hidden></p>
     <p class="footlinks">
       <a href="https://github.com/maxibraunwieser/garmin-dashboard/actions/workflows/garmin-sync.yml"
-         target="_blank" rel="noopener">Neue Garmin-Daten holen</a>
+         target="_blank" rel="noopener" class="primary-link">Garmin jetzt abrufen</a>
       <button type="button" id="hardreload">Seite neu laden</button>
+    </p>
+    <p class="hint" id="foothint">
+      &bdquo;Garmin jetzt abrufen&ldquo; oeffnet GitHub -- dort einmal auf <b>Run workflow</b> tippen, etwa
+      2 Minuten warten, dann oben rechts auf <b>Aktualisieren</b> tippen. Der Knopf oben rechts holt nur den
+      zuletzt ver&ouml;ffentlichten Stand nach, er startet selbst keinen neuen Abruf bei Garmin.
     </p>
     <p id="foot-sync"></p>
     <p>Quelle: dein Garmin-Konto, lokal synchronisiert. Schlaf, HRV und Atmung erscheinen nur f&uuml;r N&auml;chte
@@ -3468,15 +3481,38 @@
   }
 
   // ------------------------------------------------------------- chrome
+  /* "DD.MM.YYYY HH:MM" -> Date, robust gegen Browser, die das Format nicht selbst parsen */
+  function parseGenerated(str) {
+    if (!str) return null;
+    var m = String(str).match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})/);
+    if (!m) return null;
+    return new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5]);
+  }
+
   function setHeader() {
     var lp = days.length ? days[days.length - 1] : null;
     document.getElementById("stand").textContent = lp ? "Stand " + dmy(lp.d) + lp.d.slice(0, 4) : "";
     document.getElementById("subline").textContent = days.length
       ? days.length + " Tage · " + acts.length + " Trainings · von deiner Garmin-Uhr"
       : "Noch keine Daten.";
+
+    var genStr = (DATA && DATA.generated) || "unbekannt";
     document.getElementById("foot-sync").textContent =
-      "Zuletzt aktualisiert: " + ((DATA && DATA.generated) || "unbekannt") +
-      ". Die Seite zeigt den Stand der letzten Synchronisierung.";
+      "Zuletzt aktualisiert: " + genStr + ". Die Seite zeigt den Stand der letzten Synchronisierung.";
+
+    var warn = document.getElementById("stale-warning");
+    var gen = parseGenerated(genStr);
+    if (warn && gen) {
+      var hoursAgo = (Date.now() - gen.getTime()) / 3600000;
+      if (hoursAgo > 4) {
+        warn.hidden = false;
+        warn.textContent = "Dieser Stand ist " + fmt(hoursAgo, 0) + " Stunden alt — ein frisches Training " +
+          "steckt vielleicht noch nicht drin. Der automatische Abruf läuft etwa alle zwei Stunden, kann aber " +
+          "ausfallen. Klick unten auf „Garmin jetzt abrufen“, wenn du es sofort sehen willst.";
+      } else {
+        warn.hidden = true;
+      }
+    }
   }
 
   function renderActive() {
